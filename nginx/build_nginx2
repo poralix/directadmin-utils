@@ -1,0 +1,105 @@
+#!/bin/env bash
+#######################################################################################
+#                                                                                     #
+#      A script to install a mainline version of NGINX with custombuild2              #
+#      A version number of NGINX mainline is taken from versions.txt                  #
+#                                                                                     #
+#######################################################################################
+#                                                                                     #
+#         Version: 2.0 (Tue Oct  4 17:06:49 +07 2016)                                 #
+#         Written by: Alex S Grebenschikov (zEitEr)                                   #
+#         Site: www.poralix.com  E-mail: support@poralix.com                          #
+#                                                                                     #
+#                                                                                     #
+#######################################################################################
+#######################################################################################
+##                                                                                    #
+##   MIT License                                                                      #
+##                                                                                    #
+##   Copyright (c) 2016 Alex S Grebenschikov (www.poralix.com)                        #
+##                                                                                    #
+##   Permission is hereby granted, free of charge, to any person obtaining a copy     #
+##   of this software and associated documentation files (the "Software"), to deal    #
+##   in the Software without restriction, including without limitation the rights     #
+##   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell        #
+##   copies of the Software, and to permit persons to whom the Software is            #
+##   furnished to do so, subject to the following conditions:                         #
+##                                                                                    #
+##   The above copyright notice and this permission notice shall be included in all   #
+##   copies or substantial portions of the Software.                                  #
+##                                                                                    #
+##   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR       #
+##   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,         #
+##   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE      #
+##   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER           #
+##   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,    #
+##   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE    #
+##   SOFTWARE.                                                                        #
+##                                                                                    #
+#######################################################################################
+
+
+function read_yes_no()
+{
+    if [ "$1" = "-y" -o "$1" = "y" ]; then
+    {
+        yesno="y";
+        echo "y";
+        echo "Skipping...as -y was given";
+    }
+    elif [ "$1" = "-n" -o "$1" = "n" ]; then
+    {
+        yesno="n";
+        echo "n";
+        echo "Terminating...as -n was given";
+        exit 1;
+    }
+    fi;
+
+    if [ "$yesno" = "" ]; then
+    {
+        while read yesno;
+        do
+        {
+            if [ "$yesno" = "y" ]; then break;
+            elif [ "$yesno" = "n" ]; then echo "Terminating..."; exit 1;
+            else echo -n "${ask_text}"; fi;
+        }
+        done;
+    }
+    fi;
+}
+
+echo "#######################################################################";
+echo "#                                                                     #";
+echo "#  A script to install a mainline version of NGINX with custombuild2  #";
+echo "#  A version number of NGINX mainline is taken from versions.txt      #";
+echo "#            Version: 2.0 (Tue Oct  4 17:06:49 +07 2016)              #";
+echo "#            Written by: Alex S Grebenschikov (zEitEr)                #";
+echo "#                                                                     #";
+echo "#######################################################################";
+echo "";
+
+cd /usr/local/directadmin/custombuild || exit 1;
+NGINX_VER=`grep ^nginx_mainline: versions.txt | cut -d\: -f2`;
+NGINX_MD5=`grep ^nginx_mainline: versions.txt | cut -d\: -f3`;
+NGINX_VER_INSTALLED=`nginx -v 2>&1 | grep 'nginx version' | cut -d\/ -f2`;
+
+ask_text="Do you want to build NGINX? (y/n): ";
+
+echo "Latest version of NGINX mainline: ${NGINX_VER}";
+echo "Installed version of NGINX: ${NGINX_VER_INSTALLED}";
+echo "";
+echo -n "${ask_text}";
+
+read_yes_no ${1};
+
+cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
+mv -f custom_versions.txt.new custom_versions.txt;
+echo "nginx:${NGINX_VER}:${NGINX_MD5}" >> custom_versions.txt;
+
+[ -e "nginx-${NGINX_VER}.tar.gz" ] || wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
+./build update > /dev/null 2>&1;
+./build nginx;
+
+exit 0;
