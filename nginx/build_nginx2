@@ -81,6 +81,11 @@ echo "#######################################################################";
 echo "";
 
 cd /usr/local/directadmin/custombuild || exit 1;
+
+cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
+mv -f custom_versions.txt.new custom_versions.txt;
+echo "nginx:${NGINX_VER}:${NGINX_MD5}" >> custom_versions.txt;
+
 NGINX_VER=`grep ^nginx_mainline: versions.txt | cut -d\: -f2`;
 NGINX_MD5=`grep ^nginx_mainline: versions.txt | cut -d\: -f3`;
 NGINX_VER_INSTALLED=`nginx -v 2>&1 | grep 'nginx version' | cut -d\/ -f2`;
@@ -93,11 +98,6 @@ echo "";
 echo -n "${ask_text}";
 
 read_yes_no ${1};
-
-cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
-mv -f custom_versions.txt.new custom_versions.txt;
-echo "nginx:${NGINX_VER}:${NGINX_MD5}" >> custom_versions.txt;
-
 [ -e "nginx-${NGINX_VER}.tar.gz" ] || wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
 ./build update > /dev/null 2>&1;
 ./build nginx;
