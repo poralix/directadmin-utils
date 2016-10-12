@@ -92,11 +92,11 @@ echo "Installed version of NGINX: ${NGINX_VER_INSTALLED}";
 echo "";
 echo -n "${ask_text}";
 
-read_yes_no ${1};
-
 cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
 mv -f custom_versions.txt.new custom_versions.txt;
 echo "nginx:${NGINX_VER}:${NGINX_MD5}" >> custom_versions.txt;
+
+read_yes_no ${1};
 
 [ -e "nginx-${NGINX_VER}.tar.gz" ] || wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
 ./build update > /dev/null 2>&1;
