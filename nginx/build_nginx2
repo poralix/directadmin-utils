@@ -92,6 +92,7 @@ echo "Installed version of NGINX: ${NGINX_VER_INSTALLED}";
 echo "";
 echo -n "${ask_text}";
 
+[ -e "custom_versions.txt" ] || touch custom_versions.txt;
 cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
 mv -f custom_versions.txt.new custom_versions.txt;
 echo "nginx:${NGINX_VER}:${NGINX_MD5}" >> custom_versions.txt;
