@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 #######################################################################################
 #                                                                                     #
 #      A script to install a mainline version of NGINX with custombuild2              #
