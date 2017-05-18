@@ -2,11 +2,12 @@
 #
 # Poralix.com
 #
-OPENSSL_LINK="https://github.com/openssl/openssl/archive/master.tar.gz"; # OpenSSL 1.1.1-dev
-wget ${OPENSSL_LINK} -O openssl-master.tar.gz;
-tar -zxvf openssl-master.tar.gz;
+OPENSSL_VER="tls1.3-draft-18";
+OPENSSL_LINK="https://github.com/openssl/openssl/archive/${OPENSSL_VER}.tar.gz";
+wget ${OPENSSL_LINK} -O openssl-${OPENSSL_VER}.tar.gz;
+tar -zxvf openssl-${OPENSSL_VER}.tar.gz;
 PWD=`pwd`;
-OPENSSL_DIR=`find ${PWD} -type d -name openssl-master`;
+OPENSSL_DIR=`find ${PWD} -type d -name openssl-${OPENSSL_VER}`;
 ./configure \
 	"--user=nginx" \
 	"--group=nginx" \
@@ -25,4 +26,5 @@ OPENSSL_DIR=`find ${PWD} -type d -name openssl-master`;
 	"--with-http_gzip_static_module" \
 	"--with-http_dav_module" \
 	"--with-cc-opt='-D FD_SETSIZE=32768'" \
-	"--with-openssl=${OPENSSL_DIR}"
+	"--with-openssl=${OPENSSL_DIR}" \
+	"--with-openssl-opt='enable-tls1_3'"
