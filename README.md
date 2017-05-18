@@ -30,3 +30,7 @@ wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/nginx/bu
 chmod 755 ./build_nginx2
 ./build_nginx2
 ```
+
+# NGINX 1.13.x with TLSv1.3
+
+Instructions: https://help.poralix.com/articles/nginx-with-tlsv1.3-on-directadmin-server
