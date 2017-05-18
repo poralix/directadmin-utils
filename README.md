@@ -31,6 +31,6 @@ chmod 755 ./build_nginx2
 ./build_nginx2
 ```
 
-# NGINX 1.13.x with TLSv1.3
+# NGINX 1.13.x with TLSv1.3 with Directadmin
 
 Instructions: https://help.poralix.com/articles/nginx-with-tlsv1.3-on-directadmin-server
