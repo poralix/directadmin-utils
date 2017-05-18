@@ -18,6 +18,7 @@ for version 1:
 ```
 cd /usr/local/directadmin/custombuild/
 wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/nginx/build_nginx -O /usr/local/directadmin/custombuild/build_nginx
+chmod 755 ./build_nginx
 ./build_nginx
 ```
 
@@ -26,5 +27,6 @@ for version 2:
 ```
 cd /usr/local/directadmin/custombuild/
 wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/nginx/build_nginx2 -O /usr/local/directadmin/custombuild/build_nginx2
+chmod 755 ./build_nginx2
 ./build_nginx2
 ```
