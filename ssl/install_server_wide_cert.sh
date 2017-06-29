@@ -7,10 +7,11 @@
 #  IMPORTANT: Written and tested on CentOS 6.x only
 # ============================================================================
 # Written by: Alex S Grebenschikov (support@porailx.com)
-#  Copyright: 2015, Alex S Grebenschikov
+#  Copyright: 2015, 2017 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
-#  Last modified: Wed 28 Oct 2015 17:14:42 NOVT
-#  Version: 0.1 $ Wed 28 Oct 2015 17:14:53 NOVT
+#  Last modified: Thu Jun 29 09:36:58 +07 2017
+#  Version: 0.2 $ Thu Jun 29 09:36:58 +07 2017
+#           0.1 $ Wed 28 Oct 2015 17:14:53 NOVT
 # ============================================================================
 #
  
@@ -26,6 +27,26 @@ RED="`tput -Txterm setaf 1`";
 GREEN="`tput -Txterm setaf 2`";
 RESET="`tput -Txterm sgr0`";
 OPENSSL='/usr/bin/openssl';
+
+do_restart()
+{
+    echo "${BOLD}Restarting service $1${RESET}";
+    if [ -x "/bin/systemctl" ] || [ -x "/usr/bin/systemctl" ]; 
+    then
+    {
+        systemctl restart $1;
+    }
+    elif [ -x "/etc/init.d/$1" ];
+    then
+    {
+        /etc/init.d/$1 restart;
+    }
+    else
+    {
+        echo "You need to restart $1 manually in order to changes to take effect!";
+    }
+    fi;
+}
  
 do_cert_exim_dovecot()
 {
@@ -44,8 +65,9 @@ do_cert_exim_dovecot()
     chmod -v 600  ${KEYTO} ${COMBCERTTO};
     chown -v mail ${KEYTO} ${COMBCERTTO};
     chgrp -v mail ${KEYTO} ${COMBCERTTO};
-    /etc/init.d/exim restart;
-    /etc/init.d/dovecot restart;
+    do_restart exim;
+    do_restart dovecot;
+    echo;
 }
  
 do_cert_apache()
@@ -69,7 +91,8 @@ do_cert_apache()
     chmod -v 600  ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
     chown -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
     chgrp -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
-    /etc/init.d/httpd restart;
+    do_restart httpd;
+    echo;
 }
  
 do_cert_nginx()
@@ -93,7 +116,8 @@ do_cert_nginx()
     chmod -v 600  ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
     chown -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
     chgrp -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
-    /etc/init.d/nginx restart;
+    do_restart nginx;
+    echo;
 }
  
 do_cert_directadmin()
@@ -108,14 +132,15 @@ do_cert_directadmin()
     chmod -v 600 ${CERTTO} ${KEYTO} ${CACERTTO};
     chown -v diradmin:diradmin ${CERTTO} ${KEYTO} ${CACERTTO};
     killall -9 directadmin
-    /etc/init.d/directadmin start;
+    do_restart directadmin;
+    echo;
 }
  
 do_print_copyright()
 {
-    echo "=====================================================================";
-    echo " ${BOLD}Written by Alex S Grebenschikov (support@poralix.com), 2015${RESET}";
-    echo "=====================================================================";
+    echo "==========================================================================";
+    echo " ${BOLD}Written by Alex S Grebenschikov (support@poralix.com), 2015, 2017${RESET}";
+    echo "==========================================================================";
 }
  
 do_print_usage()
@@ -135,7 +160,7 @@ do_print_usage()
     echo "";
     echo "         ============================================================================";
     echo "";
-    echo "          Copyright (c) 2015 Alex S Grebenschikov (support@poralix.com)";
+    echo "          Copyright (c) 2015, 2017 Alex S Grebenschikov (support@poralix.com)";
     echo "";
     exit 1;
 }
@@ -213,8 +238,8 @@ else
 fi;
  
 do_print_copyright;
-do_validate_cert ${PCERT};
-do_validate_key ${PKEY};
+do_validate_cert "${PCERT}";
+do_validate_key "${PKEY}";
  
 if [ "${HKEY}" == "${HCERT}" ];
 then
