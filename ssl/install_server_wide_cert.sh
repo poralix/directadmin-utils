@@ -30,6 +30,7 @@ OPENSSL='/usr/bin/openssl';
 
 do_restart()
 {
+    echo;
     echo "${BOLD}Restarting service $1${RESET}";
     if [ -x "/bin/systemctl" ] || [ -x "/usr/bin/systemctl" ]; 
     then
@@ -292,6 +293,7 @@ then
     else
     {
         echo "[INFO] NGINX is not set in directadmin.conf";
+        echo;
     }
     fi;
 }
