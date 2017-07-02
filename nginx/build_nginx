@@ -74,7 +74,7 @@ function show_versions()
 function download_nginx()
 {
     cd /usr/local/directadmin/custombuild;
-    wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
+    wget https://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
 }
 
 function install_nginx()

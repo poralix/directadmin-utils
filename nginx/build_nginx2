@@ -99,7 +99,7 @@ echo "nginx:${NGINX_VER}:${NGINX_MD5}" >> custom_versions.txt;
 
 read_yes_no ${1};
 
-[ -e "nginx-${NGINX_VER}.tar.gz" ] || wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
+[ -e "nginx-${NGINX_VER}.tar.gz" ] || wget https://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O nginx-${NGINX_VER}.tar.gz;
 ./build update > /dev/null 2>&1;
 ./build nginx;
 
