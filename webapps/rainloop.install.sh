@@ -3,7 +3,10 @@
 #
 # A script to install/upgrade Rainloop on Directadmin server
 #   Written by Alex S Grebenschikov (support@poralix.com)
-#   Version: v.0.1 $ Wed Jul 12 15:49:10 +07 2017
+#   Version: v.0.1.1 $ Tue Aug  8 10:45:20 +07 2017
+#
+#   Versions:
+#           - v.0.1 $ Wed Jul 12 15:49:10 +07 2017
 #
 # TO DO:
 #   - autoconfigure new installation
@@ -51,6 +54,7 @@ chown -R webapps:webapps /var/www/html/rainloop/;
 # UPDATE ALIASES WITH CUSTOMBUILD
 [ -d "/usr/local/directadmin/custombuild" ] || die "CustomBuild not found! Terminating...";
 [ -d "/usr/local/directadmin/custombuild/custom/" ] || mkdir "/usr/local/directadmin/custombuild/custom/"
+[ -f "/usr/local/directadmin/custombuild/custom/webapps.list" ] || touch "/usr/local/directadmin/custombuild/custom/webapps.list";
 c=$(grep -c "rainloop=rainloop" /usr/local/directadmin/custombuild/custom/webapps.list);
 if [ "$c" == "0"  ]; then
     echo "rainloop=rainloop" >> /usr/local/directadmin/custombuild/custom/webapps.list;
