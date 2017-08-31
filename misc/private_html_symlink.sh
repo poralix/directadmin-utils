@@ -45,10 +45,10 @@ function usage()
 ######################################################################################
 
     Usage $0
-        --list        - list private_html status for all domains
-        --list-dirs   - list only domains with static folder for private_html
-        --list-links  - list only domains with symlink for private_html
-        --list-no     - list only domains without private_html at all
+        --list=all    - list private_html status for all domains
+        --list=dirs   - list only domains with static folder for private_html
+        --list=links  - list only domains with symlink for private_html
+        --list=no     - list only domains without private_html at all
 
         --create-symlink=dirs  - Replace directory private_html with a symlink
         --create-symlink=no    - Create symlink private_html where it does not exist
