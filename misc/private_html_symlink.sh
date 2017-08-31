@@ -85,10 +85,10 @@ function doCreateSymlink()
         {
             if [ "${1}" == "dirs" ]; then
             {
-                echo "[+] Moving existing private_html to private_html.old for domain ${DOMAIN}";
                 mv "${DH}/private_html" "${DH}/private_html.old";
-                echo "[+] Create symlink to public_html for domain ${DOMAIN} under ${DH}";
+                echo "[+] Moved existing private_html to private_html.old for domain ${DOMAIN}";
                 ln -s public_html ${DH}/private_html;
+                echo "[+] Created symlink to public_html for domain ${DOMAIN} under ${DH}";
                 chown -h ${USER}:${USER} ${DH}/private_html;
             }
             fi;
@@ -97,9 +97,9 @@ function doCreateSymlink()
         {
             if [ "${1}" == "no" ]; then
             {
-                echo "[+] Create symlink to public_html for domain ${DOMAIN} under ${DH}";
                 ln -s public_html ${DH}/private_html;
                 chown -h ${USER}:${USER} ${DH}/private_html;
+                echo "[+] Created symlink to public_html for domain ${DOMAIN} under ${DH}";
             }
             fi;
         }
