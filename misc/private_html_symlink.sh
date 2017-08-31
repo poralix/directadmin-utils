@@ -45,10 +45,10 @@ function usage()
 ######################################################################################
 
     Usage $0
-        --list=all    - list private_html status for all domains
-        --list=dirs   - list only domains with static folder for private_html
-        --list=links  - list only domains with symlink for private_html
-        --list=no     - list only domains without private_html at all
+        --list        - list private_html status for all domains
+        --list-dirs   - list only domains with static folder for private_html
+        --list-links  - list only domains with symlink for private_html
+        --list-no     - list only domains without private_html at all
 
         --create-symlink=dirs  - Replace directory private_html with a symlink
         --create-symlink=no    - Create symlink private_html where it does not exist
@@ -57,7 +57,7 @@ function usage()
 
 function doList()
 {
-    for DH in `ls -d1 /home/*/domains/*/ | egrep -v "/shared/|/suspended/|/default/" | sort`;
+    for DH in `ls -d1 /home/*/domains/*/ 2>/dev/null | egrep -v "/shared/|/suspended/|/default/|/sharedip/" | sort`;
     do
         DOMAIN=$(echo ${DH} | cut -d\/ -f5);
         if [ -L "${DH}/private_html" ]; then
@@ -72,7 +72,7 @@ function doList()
 
 function doCreateSymlink()
 {
-    for DH in `ls -d1 /home/*/domains/*/ | egrep -v "/shared/|/suspended/|/default/" | sort`;
+    for DH in `ls -d1 /home/*/domains/*/ 2>/dev/null | egrep -v "/shared/|/suspended/|/default/|/sharedip/" | sort`;
     do
         USER=$(echo ${DH} | cut -d\/ -f3);
         DOMAIN=$(echo ${DH} | cut -d\/ -f5);
