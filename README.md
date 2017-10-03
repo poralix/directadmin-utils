@@ -34,3 +34,14 @@ chmod 755 ./build_nginx2
 # NGINX 1.13.x with TLSv1.3 and Directadmin
 
 Instructions: https://help.poralix.com/articles/nginx-with-tlsv1.3-on-directadmin-server
+
+# Update Directadmin from beta / stable channel per needs
+
+./core/updateda.sh
+
+```
+cd /root/
+wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/core/updateda.sh
+chmod 755 updateda.sh
+./updateda.sh beta
+```
