@@ -1,0 +1,34 @@
+--- /usr/local/directadmin/scripts/letsencrypt.sh	2017-11-15 23:43:21.000000000 +0700
++++ /usr/local/directadmin/scripts/letsencrypt_poralix.sh	2017-11-16 15:09:26.000000000 +0700
+@@ -443,6 +443,16 @@
+ 	echo "Getting challenge for ${single_domain} from acme-server..."
+ 	send_signed_request "normal" "${API}/acme/new-authz" '{"resource": "new-authz", "identifier": {"type": "dns", "value": "'"${single_domain}"'"}}'
+ 
++	# poralix
++	if [ "${HTTP_STATUS}" -ne 201 ] ; then
++		sleep 1;
++		ERROR500=$(echo ${RESPONSE} | grep -c 'HTTP/1.1 500 Internal Server Error');
++		if [ "${ERROR500}" -ne 0 ]; then
++			echo "Error 500 occured in authz request: ${RESPONSE}. Trying once again...";
++			send_signed_request "normal" "${API}/acme/new-authz" '{"resource": "new-authz", "identifier": {"type": "dns", "value": "'"${single_domain}"'"}}';
++		fi;
++	fi;
++
+ 	#Account has a key for let's encrypt, but it's not registered
+ 	if [ "${HTTP_STATUS}" -eq 403 ] ; then
+ 		echo "User let's encrypt key has been found, but not registered. Registering..."
+@@ -535,6 +545,14 @@
+ 		echo "Challenge is ${CHALLENGE_STATUS}. Details: ${CHALLENGE_DETAIL}. Exiting..."
+ 		exit 1
+ 	fi
++	
++	# poralix
++	echo -n "Sleep some ";
++	for n in `seq 1 5`; do
++		sleep 1;
++		echo -n '.';
++	done;
++	echo '';
+ }
+ done
+ 

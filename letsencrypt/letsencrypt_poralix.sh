@@ -1,5 +1,5 @@
 #!/bin/sh
-#VERSION=1.0.8
+#VERSION=1.0.17
 # This script is written by Martynas Bendorius and DirectAdmin
 # It is used to create/renew let's encrypt certificate for a domain
 # Official DirectAdmin webpage: http://www.directadmin.com
@@ -33,7 +33,7 @@ fi
 #API_URI="acme-staging.api.letsencrypt.org"
 API_URI="acme-v01.api.letsencrypt.org"
 API="https://${API_URI}"
-LICENSE="https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf"
+LICENSE="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
 CHALLENGETYPE="http-01"
 LICENSE_KEY_MIN_DATE=1470383674
 
@@ -119,7 +119,7 @@ send_signed_request() {
 checkPrivPubMatch() {
 	PRIV="${1}"
 	PUB="${2}"
-	if [ -f "${PRIV}" ] && [ -f "{$PUB}" ]; then
+	if [ -f "${PRIV}" ] && [ -f "${PUB}" ]; then
 		MD5SUMPRIVMOD=`openssl rsa -noout -modulus -in ${PRIV}| openssl md5`
 		MD5SUMPUBMOD=`openssl x509 -noout -modulus -in ${PUB} | openssl md5`
 		if [ "${MD5SUMPRIVMOD}" = "${MD5SUMPUBMOD}" ]; then
@@ -160,7 +160,7 @@ for TDOMAIN in ${DOMAINARR}
 do
 	DOMAIN=${TDOMAIN}
 
-	DOMAIN_ESCAPED="`echo ${DOMAIN} | perl -p0 -e 's#\.#\\\.#'`"
+	DOMAIN_ESCAPED="`echo ${DOMAIN} | perl -p0 -e 's#\.#\\\.#g'`"
 
 	if grep -m1 -q "^${DOMAIN_ESCAPED}:" /etc/virtual/domainowners; then
 		USER=`grep -m1 "^${DOMAIN_ESCAPED}:" /etc/virtual/domainowners | cut -d' ' -f2`
@@ -249,6 +249,7 @@ challenge_check() {
                 mkdir -p ${WELLKNOWN_PATH}
         fi
         touch ${WELLKNOWN_PATH}/letsencrypt_${TIMESTAMP}
+	chown webapps:webapps ${WELLKNOWN_PATH}/letsencrypt_${TIMESTAMP}
 	#Checking if http://www.domain.com/.well-known/acme-challenge/letsencrypt_${TIMESTAMP} is available
 	if ! ${CURL} ${CURL_OPTIONS} -I -L -X GET http://${1}/.well-known/acme-challenge/letsencrypt_${TIMESTAMP} 2>/dev/null | grep -m1 -q 'HTTP.*200'; then
 		echo 1
@@ -364,7 +365,7 @@ elif [ "${HOSTNAME}" -eq 0 ]; then
 		SAN=""
 		for TDOMAIN in ${DOMAINARR}
 		do
-			CHALLENGE_TEST=`challenge_check ${H}`
+			CHALLENGE_TEST=`challenge_check ${TDOMAIN}`
 			if [ ${CHALLENGE_TEST} -ne 1 ]; then
 				SAN="${SAN}, DNS:${TDOMAIN}"
 			else
@@ -415,11 +416,18 @@ else
 fi
 
 DOMAINS="`echo ${SAN} | tr -d '\",' | perl -p0 -e 's#DNS:##g'`"
+CN_DOMAIN=${DOMAIN}
+if ! echo "${DOMAINS}" | grep -m1 -q "DNS:${DOMAIN},"; then
+        CN_DOMAIN="`echo ${SAN} | cut -d':' -f2 | cut -d',' -f1`"
+fi
+if [ "${CN_DOMAIN}" = "" ]; then
+	CN_DOMAIN=${DOMAIN}
+fi
 
 #Create san_config
 if [ ! -s ${SAN_CONFIG} ] || ${DOMAINARR_IN_USE} || ${IS_SINGLE}; then
 	echo "[ req_distinguished_name ]" > ${SAN_CONFIG}
-	echo "CN = ${DOMAIN}" >> ${SAN_CONFIG}
+	echo "CN = ${CN_DOMAIN}" >> ${SAN_CONFIG}
 	echo "[ req ]" >> ${SAN_CONFIG}
 	echo "distinguished_name = req_distinguished_name" >> ${SAN_CONFIG}
 	echo "[SAN]" >> ${SAN_CONFIG}
@@ -434,6 +442,16 @@ for single_domain in ${DOMAINS}; do {
 	# Connect to the acme-server to get a new challenge token to verify the domain
 	echo "Getting challenge for ${single_domain} from acme-server..."
 	send_signed_request "normal" "${API}/acme/new-authz" '{"resource": "new-authz", "identifier": {"type": "dns", "value": "'"${single_domain}"'"}}'
+
+	# poralix
+	if [ "${HTTP_STATUS}" -ne 201 ] ; then
+		sleep 1;
+		ERROR500=$(echo ${RESPONSE} | grep -c 'HTTP/1.1 500 Internal Server Error');
+		if [ "${ERROR500}" -ne 0 ]; then
+			echo "Error 500 occured in authz request: ${RESPONSE}. Trying once again...";
+			send_signed_request "normal" "${API}/acme/new-authz" '{"resource": "new-authz", "identifier": {"type": "dns", "value": "'"${single_domain}"'"}}';
+		fi;
+	fi;
 
 	#Account has a key for let's encrypt, but it's not registered
 	if [ "${HTTP_STATUS}" -eq 403 ] ; then
@@ -478,6 +496,8 @@ for single_domain in ${DOMAINS}; do {
 
 	echo "${KEYAUTH}" > "${WELLKNOWN_PATH}/${CHALLENGE_TOKEN}"
 
+	chown webapps:webapps "${WELLKNOWN_PATH}/${CHALLENGE_TOKEN}"
+
 	#Checking if challenge will be reachable
 	CHALLENGE_TEST=`challenge_check ${single_domain}`
 	if [ ${CHALLENGE_TEST} -eq 1 ]; then
@@ -494,26 +514,20 @@ for single_domain in ${DOMAINS}; do {
 	
 	send_signed_request "normal" "${CHALLENGE_URI}" "{\"resource\": \"challenge\", \"keyAuthorization\": \"${KEYAUTH}\"}"
 
-	while [ ${HTTP_STATUS} -ne 202 ] ; do
-		echo "Challenge error: ${RESPONSE}."
-		echo "";
-		echo -n "Do you want to retry (yes/no): "
-		while read yesno;
-		do
-			case "${yesno}" in
-				yes|y)
-					send_signed_request "normal" "${CHALLENGE_URI}" "{\"resource\": \"challenge\", \"keyAuthorization\": \"${KEYAUTH}\"}"
-					break;
-				;;
-				no|n)
-					exit 1;
-				;;
-				*)
-					echo -n "Do you want to retry (yes/no): "
-				;;
-			esac;
+	if [ ${HTTP_STATUS} -ne 202 ] ; then
+		echo -n "Challenge error: ${RESPONSE}. Trying again..."
+		for n in `seq 1 5`; do
+			sleep 1;
+			echo -n '.';
 		done;
-	done
+		echo "";
+		send_signed_request "normal" "${CHALLENGE_URI}" "{\"resource\": \"challenge\", \"keyAuthorization\": \"${KEYAUTH}\"}"
+	fi
+
+	if [ ${HTTP_STATUS} -ne 202 ] ; then
+		echo "Challenge error: ${RESPONSE}. Exiting..."
+		exit 1
+	fi
 
 	echo "Waiting for domain verification..."
 	while [ "${CHALLENGE_STATUS}" = "pending" ]; do
@@ -532,6 +546,7 @@ for single_domain in ${DOMAINS}; do {
 		exit 1
 	fi
 	
+	# poralix
 	echo -n "Sleep some ";
 	for n in `seq 1 5`; do
 		sleep 1;
@@ -546,7 +561,7 @@ echo "Generating ${KEY_SIZE} bit RSA key for ${DOMAIN}..."
 echo "openssl genrsa ${KEY_SIZE} > \"${KEY}.new\""
 ${OPENSSL} genrsa ${KEY_SIZE} > "${KEY}.new"
 
-${OPENSSL} req -new -sha256 -key "${KEY}.new" -subj "/CN=${DOMAIN}" -reqexts SAN -config "${SAN_CONFIG}" -out "${CSR}"
+${OPENSSL} req -new -sha256 -key "${KEY}.new" -subj "/CN=${CN_DOMAIN}" -reqexts SAN -config "${SAN_CONFIG}" -out "${CSR}"
 
 #Request certificate from let's encrypt
 DER64="`${OPENSSL} req -in ${CSR} -outform DER | base64_encode`"
@@ -573,12 +588,33 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-CACERT64=`${CURL} -k --silent -X GET "${API}/acme/issuer-cert" | ${OPENSSL} base64 -e`
-SIZE_OF_CACERT64="`echo ${CERT64} | wc -c`"
-if [ ${SIZE_OF_CACERT64} -gt 500 ]; then
-	echo "-----BEGIN CERTIFICATE-----" > ${CACERT}
-	echo "${CACERT64}" >> ${CACERT}
-	echo "-----END CERTIFICATE-----" >> ${CACERT}
+getCacert() {
+	CACERT64=`${CURL} -k --silent -X GET "${API}/acme/issuer-cert" | ${OPENSSL} base64 -e`
+	SIZE_OF_CACERT64="`echo ${CERT64} | wc -c`"
+	if [ ${SIZE_OF_CACERT64} -gt 500 ]; then
+	        echo "-----BEGIN CERTIFICATE-----" > ${CACERT}.new
+	        echo "${CACERT64}" >> ${CACERT}.new
+        	echo "-----END CERTIFICATE-----" >> ${CACERT}.new
+	fi
+}
+
+getCacert
+CACERT_LINES=`cat ${CACERT}.new | wc -l`
+if [ ${CACERT_LINES} -lt 4 ]; then
+	echo "Unable to retrieve CA root cert. Retrying..."
+	getCacert
+fi
+
+CACERT_LINES=`cat ${CACERT}.new | wc -l`
+if [ ${CACERT_LINES} -lt 4 ]; then
+	echo "Retry for CA root cert failed."
+	if [ -s ${CACERT} ]; then
+		echo "Using old CA root certificate ${CACERT}."
+		rm -f ${CACERT}.new
+	else
+		echo "Exiting.."
+		exit 1
+	fi
 fi
 
 echo -n "Checking Certificate Private key match... "
@@ -593,6 +629,38 @@ fi
 #everything went well, move the new files.
 /bin/mv -f ${KEY}.new ${KEY}
 /bin/mv -f ${CERT}.new ${CERT}
+if [ -s ${CACERT}.new ]; then
+	/bin/mv -f ${CACERT}.new ${CACERT}
+fi
+if [ ! -s ${CACERT} ]; then
+echo "-----BEGIN CERTIFICATE-----
+MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/
+MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT
+DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow
+SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT
+GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF
+q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8
+SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0
+Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA
+a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj
+/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T
+AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG
+CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv
+bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k
+c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw
+VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC
+ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz
+MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu
+Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF
+AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo
+uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/
+wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu
+X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG
+PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6
+KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==
+-----END CERTIFICATE-----" > ${CACERT}
+fi
 date +%s > ${CERT}.creation_time
 
 cat ${CERT} ${CACERT} > ${CERT}.combined
