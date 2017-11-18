@@ -1,4 +1,4 @@
-# let's encrypt patch for VERSION=1.0.17 letsencrypt.sh
+# let's encrypt patch for VERSION=1.0.18 letsencrypt.sh
 
 Having 10-20-30... domains (and more) in ca.san_config is a challenge to get them verified at once. This patch will give you a re-try on challenge verification.
 

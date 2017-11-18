@@ -1,5 +1,5 @@
 #!/bin/sh
-#VERSION=1.0.17
+#VERSION=1.0.18
 # This script is written by Martynas Bendorius and DirectAdmin
 # It is used to create/renew let's encrypt certificate for a domain
 # Official DirectAdmin webpage: http://www.directadmin.com
@@ -34,6 +34,11 @@ fi
 API_URI="acme-v01.api.letsencrypt.org"
 API="https://${API_URI}"
 LICENSE="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
+LICENSE_NEW=$(curl -I -s https://acme-v01.api.letsencrypt.org/terms | (grep Location: || true) | awk -F ': ' '{print $2}' | tr -d '\n\r')
+if [ "$(echo "$LICENSE_NEW" | cut -c1-4)" == "http" ]; then
+	LICENSE=$LICENSE_NEW
+fi
+
 CHALLENGETYPE="http-01"
 LICENSE_KEY_MIN_DATE=1470383674
 
