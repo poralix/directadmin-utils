@@ -36,7 +36,7 @@
 ##                                                                                    #
 #######################################################################################
 
-function usage()
+usage()
 {
     echo "
 ######################################################################################
@@ -73,13 +73,13 @@ function usage()
 ";
 }
 
-function die()
+die()
 {
     echo "[ERROR] $1";
     exit 1;
 }
 
-function doProcess()
+doProcess()
 {
     cd /usr/local/directadmin || die "Directadmin not installed!";
     SETUP_FILE="/usr/local/directadmin/scripts/setup.txt";
@@ -131,27 +131,27 @@ function doProcess()
     doVersion;
 }
 
-function doVersion()
+doVersion()
 {
     /usr/local/directadmin/directadmin v;
     /usr/local/directadmin/directadmin o;
 }
 
-function doStableUpdate()
+doStableUpdate()
 {
     CHANNEL="";
     RELEASE="stable";
     doProcess;
 }
 
-function doBetaUpdate()
+doBetaUpdate()
 {
     CHANNEL="&channel=beta";
     RELEASE="beta";
     doProcess;
 }
 
-function getAllOS()
+getAllOS()
 {
     a='RedHat';
     b='Fedora';
@@ -203,7 +203,7 @@ function getAllOS()
     Debian[9]='Debian 9 64';
 }
 
-function getOS()
+getOS()
 {
     getAllOS;
     if [ -n "${1}" ]; then
@@ -216,7 +216,7 @@ function getOS()
     fi;
 }
 
-function doListOS()
+doListOS()
 {
     getAllOS;
     OUTPUT="";
