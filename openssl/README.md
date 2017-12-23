@@ -4,7 +4,7 @@ A script to update OpenSSL version on CentOS servers to the latest 1.0.2 version
 
 ```
 cd /usr/local/directadmin/scripts/
-wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/openssl/openssl.install-1.0.2-primary.sh
+wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/openssl/openssl.install-1.0.2-primary.sh -O openssl.install-1.0.2-primary.sh
 chmod 755 openssl.install-1.0.2-primary.sh
 ./openssl.install-1.0.2-primary.sh
 ```
@@ -14,7 +14,7 @@ A script to update OpenSSL version on CentOS servers to the latest 1.0.1 version
 
 ```
 cd /usr/local/directadmin/scripts/
-wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/openssl/openssl.install-1.0.1-primary.sh
+wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/openssl/openssl.install-1.0.1-primary.sh -O openssl.install-1.0.1-primary.sh
 chmod 755 openssl.install-1.0.1-primary.sh
 ./openssl.install-1.0.1-primary.sh
 ```
