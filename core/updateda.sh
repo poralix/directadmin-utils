@@ -233,6 +233,7 @@ doListOS()
                 let index=(index+1);
                 OUTPUT="${OUTPUT}\n${OSversion//\ /_} ${letter}${index}";
             done;
+            OUTPUT="${OUTPUT}\n";
         fi;
     done;
     echo -ne "${OUTPUT}" 2>/dev/null | column -t 2>/dev/null;
