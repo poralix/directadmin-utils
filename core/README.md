@@ -117,5 +117,9 @@ Debian_6_64           e5
 Debian_7              e6
 Debian_7_64           e7
 Debian_8_64           e8
+Debian_9_64           e9
 ```
 
+# History of changes
+
+- Version: 0.3 (Wed Mar 14 17:49:04 +07 2018): added detection of os_override in directadmin
