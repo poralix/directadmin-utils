@@ -5,7 +5,7 @@
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.2 (Mon Nov 20 02:49:46 +07 2017)                              #
+#            Version: 0.3 (Wed Mar 14 17:49:04 +07 2018)                              #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -94,14 +94,19 @@ doProcess()
     [ -n "${DA_IP}" ] && DA_IP="--bind-address=${DA_IP}";
 
     # OS version override
-    if [ -n "${DA_OS}" ];
-    then 
-        OS_choice=`getOS "${DA_OS}"`;
-        if [ -n "${OS_choice}" ]; then
-            DA_OS="&os=${OS_choice}";
-        else
-            echo "[ERROR] Could not find OS with the code ${DA_OS}. To list support OS with codes run: $0 list_os";
-            exit 2;
+    if [ -n "${OS_OVERRIDE}" ];
+    then
+        DA_OS="&os=${OS_OVERRIDE}";
+    else
+        if [ -n "${DA_OS}" ];
+        then 
+            OS_choice=`getOS "${DA_OS}"`;
+            if [ -n "${OS_choice}" ]; then
+                DA_OS="&os=${OS_choice}";
+            else
+                echo "[ERROR] Could not find OS with the code ${DA_OS}. To list support OS with codes run: $0 list_os";
+                exit 2;
+            fi;
         fi;
     fi;
 
@@ -231,6 +236,9 @@ doListOS()
             for OSversion in "${!OSversions}"
             do
                 let index=(index+1);
+                if [ -n "${OS_OVERRIDE}" ] && [ "${OS_OVERRIDE}" == "${OSversion}" ] ; then
+                    OSversion="**${OSversion}**"
+                fi;
                 OUTPUT="${OUTPUT}\n${OSversion//\ /_} ${letter}${index}";
             done;
             OUTPUT="${OUTPUT}\n";
@@ -238,6 +246,21 @@ doListOS()
     done;
     echo -ne "${OUTPUT}" 2>/dev/null | column -t 2>/dev/null;
 }
+
+os_override_warning()
+{
+    if [ -n "${OS_OVERRIDE}" ]; then
+        echo "";
+        echo "*** WARNING *** os_override detected in directadmin.conf with the value ${OS_OVERRIDE}.";
+        echo "                A binary of Directadmin for ${OS_OVERRIDE} will be downloaded instead!";
+        echo "                If it's not what you want you should change value in directadmin.conf";
+        echo "";
+    fi;
+}
+
+OS_OVERRIDE=$(/usr/local/directadmin/directadmin c | grep ^os_override= | cut -d= -f2);
+os_override_warning;
+
 
 for option in $@;
 do
@@ -274,5 +297,7 @@ case "$1" in
         usage;
     ;;
 esac;
+
+os_override_warning;
 
 exit 0;
