@@ -36,6 +36,9 @@
 ##                                                                                    #
 #######################################################################################
 
+BN="`tput -Txterm bold`";
+BF="`tput -Txterm sgr0`";
+
 usage()
 {
     echo "
@@ -44,30 +47,30 @@ usage()
 #    Written by: Alex S Grebenschikov (zEitEr)                                       #
 ######################################################################################
 
-    Usage $0 <cmd> [<options>]
+    ${BN}Usage${BF} $0 <cmd> [<options>]
 
-        Commands:
+        ${BN}Commands${BF}:
             stable  - Download and install Directadmin update from stable channel
             beta    - Download and install Directadmin update from beta channel
             version - Show installed version of Directadmin
             list_os - Show supported OS and their versions
 
-        Options:
+        ${BN}Options${BF}:
             --lid=  - License ID (if omitted, we check if setup.txt)
             --uid=  - User ID (if omitted, we check if setup.txt)
             --ip=   - IP to be used for outgoing connection
             --os=   - Override OS selection (see list of OS for codes)
 
-        Possible OS (run the command to list supported OS with codes):
+        ${BN}Possible OS${BF} (run the command to list supported OS with codes):
 
             $0 list_os
 
-        Example of usage:
+        ${BN}Example of usage${BF}:
 
             $0 beta
             $0 stable
 
-        or any combinations with:
+        ${BN}or any combinations with${BF}:
 
             $0 beta --ip=1.2.3.4 --lid=12345 --uid=6789 --os=c9
 ";
@@ -236,12 +239,16 @@ doListOS()
             for OSversion in "${!OSversions}"
             do
                 let index=(index+1);
-                if [ -n "${OS_OVERRIDE}" ] && [ "${OS_OVERRIDE}" == "${OSversion}" ] ; then
-                    OSversion="**${OSversion}**"
+                if [ -n "${OS_OVERRIDE}" ]; then
+                        if [ "${OS_OVERRIDE}" == "${OSversion}" ] ; then
+                            OSversion="${BN}${OSversion}${BN}";
+                        elif [ "${OS_OVERRIDE}" == "${OSversion//\ /%20}" ] ; then
+                            OSversion="${BN}${OSversion}${BF}";
+                        fi;
                 fi;
                 OUTPUT="${OUTPUT}\n${OSversion//\ /_} ${letter}${index}";
             done;
-            OUTPUT="${OUTPUT}\n";
+            OUTPUT="${OUTPUT}\n\n";
         fi;
     done;
     echo -ne "${OUTPUT}" 2>/dev/null | column -t 2>/dev/null;
@@ -251,7 +258,7 @@ os_override_warning()
 {
     if [ -n "${OS_OVERRIDE}" ]; then
         echo "";
-        echo "*** WARNING *** os_override detected in directadmin.conf with the value ${OS_OVERRIDE}.";
+        echo "${BN}*** WARNING ***${BF} os_override detected in directadmin.conf with the value ${OS_OVERRIDE}.";
         echo "                A binary of Directadmin for ${OS_OVERRIDE} will be downloaded instead!";
         echo "                If it's not what you want you should change value in directadmin.conf";
         echo "";
