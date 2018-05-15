@@ -1,7 +1,20 @@
 # Scripts for operations with PHP
 
+- build_pecl_extension.sh 
+- bulk_run_php.sh
 - change_domain_phpver.sh
 - test_sockets_ssl.php
+
+
+# Description of build_pecl_extension.sh 
+
+A script to install/update/remove pecl extension for all installed by CustomBuild 2.x PHP versions
+
+Written by: Alex Grebenschikov (support@poralix.com)
+
+# Description of bulk_run_php.sh
+
+A script to run code with all existing PHP versions installed by CustomBuild 2.x
 
 # Description of change_domain_phpver.sh
 
