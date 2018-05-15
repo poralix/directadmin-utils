@@ -12,9 +12,42 @@ A script to install/update/remove pecl extension for all installed by CustomBuil
 
 Written by: Alex Grebenschikov (support@poralix.com)
 
+```
+Usage:
+
+./build_pecl_extension.sh <command> <pecl_extension> [<php-version>]
+
+        Supported commands:
+
+            install - to install extension
+            remove  - to remove extension
+
+        php-version - digits only (only one version at a time):
+
+            52, 53, 54, 55, 56, 70, 71, 72, etc
+```
+
 # Description of bulk_run_php.sh
 
 A script to run code with all existing PHP versions installed by CustomBuild 2.x
+
+```
+Usage:
+    ./bulk_run_php.sh <command-for-php>
+
+Built-in commands:
+    versions      - to list installed PHP versions
+    full-versions - to show installed PHP versions
+    --ini         - to show loaded ini files for PHP
+
+Other commands:
+    You can run any other command supported by PHP,
+    run
+        php --help
+    or
+        ./bulk_run_php.sh --help
+    to see a list of the options.
+```
 
 # Description of change_domain_phpver.sh
 
