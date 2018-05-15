@@ -38,7 +38,12 @@ Usage:
 Built-in commands:
     versions      - to list installed PHP versions
     full-versions - to show installed PHP versions
+    update-all    - to update all installed versions (expert mode is used)
     --ini         - to show loaded ini files for PHP
+
+Update-all (beta):
+    DO NOT use it for mod_php!!!
+    you can specify: suphp, fastcgi, php-fpm to force the mode
 
 Other commands:
     You can run any other command supported by PHP,
