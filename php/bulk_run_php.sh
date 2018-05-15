@@ -118,7 +118,7 @@ do_update_all()
             echo "Updating version of PHP ${IVER_xdx}: ${BN}${IVER}${BF} as ${BN}${PHP_MODE}${BF}";
             echo "Installed into ${BN}${PHP}${BF}";
             echo "Will run /usr/local/directadmin/custombuild && ./build php_expert ${IVER_xx} ${PHP_MODE}";
-            #do_update ${PHP_MODE};
+            do_update ${PHP_MODE};
             echo "";
         else
             echo "DON'T USE THE SCRIPT FOR UPDATING PHP INSTALLED AS mod_PHP";
