@@ -5,7 +5,9 @@
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.3 (Wed Mar 14 17:49:04 +07 2018)                              #
+#            Versions:                                                                #
+#                      0.4-beta (Tue May 22 12:53:02 +07 2018)                        #
+#                      0.3      (Wed Mar 14 17:49:04 +07 2018)                        #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -54,6 +56,7 @@ usage()
             beta    - Download and install Directadmin update from beta channel
             version - Show installed version of Directadmin
             list_os - Show supported OS and their versions
+            license - Show License ID and User ID as how Directadmin sees it
 
         ${BN}Options${BF}:
             --lid=  - License ID (if omitted, we check if setup.txt)
@@ -82,14 +85,39 @@ die()
     exit 1;
 }
 
-doProcess()
+getLicenseDetails()
 {
-    cd /usr/local/directadmin || die "Directadmin not installed!";
+    TMPFILE=$(mktemp);
     SETUP_FILE="/usr/local/directadmin/scripts/setup.txt";
+    if [ -f "${TMPFILE}" ]; then
+        /usr/local/directadmin/directadmin l > ${TMPFILE};
+        [ -z "${DA_UID}" ] && DA_UID=$(cat "${TMPFILE}" | grep ^uid= | cut -d\= -f2);
+        [ -z "${DA_LID}" ] && DA_LID=$(cat "${TMPFILE}" | grep ^lid= | cut -d\= -f2);
+        rm -f "${TMPFILE}";
+    fi;
     if [ -f "${SETUP_FILE}" ]; then
         [ -z "${DA_UID}" ] && DA_UID=$(grep ^uid= "${SETUP_FILE}" | cut -d\= -f2);
         [ -z "${DA_LID}" ] && DA_LID=$(grep ^lid= "${SETUP_FILE}" | cut -d\= -f2);
     fi;
+}
+
+doLicenseDetails()
+{
+    DA_UID="";
+    DA_LID="";
+    getLicenseDetails;
+    echo "UID=${DA_UID}";
+    echo "LID=${DA_LID}";
+}
+
+doProcess()
+{
+    cd /usr/local/directadmin || die "Directadmin not installed!";
+
+    if [ -z "${DA_UID}" ] || [ -z "${DA_LID}" ]; then
+        getLicenseDetails;
+    fi;
+
     [ -z "${DA_UID}" ] && die "Client ID is empty...";
     [ -z "${DA_LID}" ] && die "License ID is empty...";
 
@@ -258,16 +286,18 @@ os_override_warning()
 {
     if [ -n "${OS_OVERRIDE}" ]; then
         echo "";
-        echo "${BN}*** WARNING ***${BF} os_override detected in directadmin.conf with the value ${OS_OVERRIDE}.";
-        echo "                A binary of Directadmin for ${OS_OVERRIDE} will be downloaded instead!";
+        echo "${BN}*** WARNING ***${BF} os_override detected in directadmin.conf with the value ${BN}${OS_OVERRIDE}${BF}.";
+        echo "                A binary of Directadmin for ${BN}${OS_OVERRIDE//\%20/ }${BF} will be downloaded instead!";
         echo "                If it's not what you want you should change value in directadmin.conf";
         echo "";
     fi;
 }
 
-OS_OVERRIDE=$(/usr/local/directadmin/directadmin c | grep ^os_override= | cut -d= -f2);
-os_override_warning;
+USER=$(whoami);
 
+[ "root" == "${USER}" ] || die "Should be root to run this programm...";
+
+OS_OVERRIDE=$(/usr/local/directadmin/directadmin c | grep ^os_override= | cut -d= -f2);
 
 for option in $@;
 do
@@ -287,24 +317,33 @@ do
     esac;
 done;
 
+SHOW_OS_OVERRIDE_WARNING=0;
+
 case "$1" in
     stable)
         doStableUpdate;
+        SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     beta)
         doBetaUpdate;
+        SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     version)
         doVersion;
     ;;
     list_os)
         doListOS;
+        SHOW_OS_OVERRIDE_WARNING=1;
+    ;;
+    license)
+        doLicenseDetails;
     ;;
     *)
         usage;
+        SHOW_OS_OVERRIDE_WARNING=1;
     ;;
 esac;
 
-os_override_warning;
+[ "${SHOW_OS_OVERRIDE_WARNING}" == "1" ] && os_override_warning;
 
 exit 0;
