@@ -46,7 +46,7 @@ usage()
     echo "
 ######################################################################################
 #    A script to update Directadmin from beta or stable channel                      #
-#    Written by: Alex S Grebenschikov (zEitEr)                                       #
+#    Written by: Alex S Grebenschikov (zEitEr), www.poralix.com                      #
 ######################################################################################
 
     ${BN}Usage${BF} $0 <cmd> [<options>]
