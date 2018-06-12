@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov(support@poralix.com)
 #
 # =====================================================
-# versions: 0.4-beta $ Tue May 15 14:08:57 +07 2018
+# versions: 0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
+#           0.4-beta $ Tue May 15 14:08:57 +07 2018
 #           0.3-beta $ Wed May  2 20:36:54 +07 2018
 #           0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # =====================================================
@@ -28,7 +29,7 @@ function do_usage()
 # A script to install/update/remove pecl extension      #
 # for all installed by CustomBuild 2.x PHP versions     #
 # Written by Alex Grebenschikov(support@poralix.com)    #
-# Version: 0.4-beta $ Tue May 15 14:08:57 +07 2018      #
+# Version: 0.5-beta $ Tue Jun 12 02:27:32 PDT 2018      #
 # ===================================================== #
 
 Usage:
@@ -115,7 +116,7 @@ do_update_ini()
     then
     {
         echo "${BN}[OK] Found ${EXT}.so. Enabling the extension in ${INI_FILE}${BF}";
-        grep -m1 -q "^${ROW}" "${INI_FILE}" || echo "${ROW}" >> ${INI_FILE};
+        grep -m1 -q "^${ROW}" "${INI_FILE}" >/dev/null 2>&1 || echo "${ROW}" >> ${INI_FILE};
         /usr/local/${1}/bin/php -i 2>&1 | grep -i "^${EXT}" | grep -v 'Configure Command' | head -3;
     }
     else
@@ -139,12 +140,17 @@ verify_php_version()
         then
         {
             PHPVER="php${PVN}";
+            PECL="/usr/local/php${PVN}/bin/pecl";
         }
         else
         {
             echo "${BN}[ERROR] PHP version php${PVN} was not found!${BF}";
             exit 2;
         }
+        fi;
+        if [ ! -x "${PECL}" ]; then
+            echo "${BN}[ERROR] PECL for PHP version php${PVN} was not found!${BF}";
+            exit 2;
         fi;
     }
     fi;
