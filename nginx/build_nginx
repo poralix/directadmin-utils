@@ -6,7 +6,7 @@
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.3 (Mon Jul  9 11:59:06 +07 2018)                              #
+#            Version: 0.3.1 (Mon Jul  9 12:28:48 +07 2018)                            #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -44,7 +44,7 @@ function usage()
     echo "#                                                                      #";
     echo "#  A script to install a mainline version of NGINX with custombuild2   #";
     echo "#  A version number of NGINX mainline is taken from NGINX's trac site  #";
-    echo "#            Version: 0.3 (Mon Jul  9 11:59:06 +07 2018)               #";
+    echo "#            Version: 0.3.1 (Mon Jul  9 12:28:48 +07 2018)             #";
     echo "#            Written by: Alex S Grebenschikov (zEitEr)                 #";
     echo "#                                                                      #";
     echo "########################################################################";
@@ -98,6 +98,7 @@ function download_nginx()
 
 function install_nginx()
 {
+    cd /usr/local/directadmin/custombuild;
     ./build update;
     ./build nginx;
 }
