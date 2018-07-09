@@ -6,7 +6,7 @@
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.2 (Mon Aug  8 15:17:32 +07 2016)                              #
+#            Version: 0.3 (Mon Jul  9 11:59:06 +07 2018)                              #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -44,25 +44,44 @@ function usage()
     echo "#                                                                      #";
     echo "#  A script to install a mainline version of NGINX with custombuild2   #";
     echo "#  A version number of NGINX mainline is taken from NGINX's trac site  #";
-    echo "#            Version: 0.2 (Mon Aug  8 15:17:32 +07 2016)               #";
+    echo "#            Version: 0.3 (Mon Jul  9 11:59:06 +07 2018)               #";
     echo "#            Written by: Alex S Grebenschikov (zEitEr)                 #";
     echo "#                                                                      #";
     echo "########################################################################";
     echo "";
     echo "Usage:";
     echo "   $0 versions - to update information of available mainline version ";
+    echo "   $0 download - to download the latest available mainline version ";
     echo "   $0 install  - to download and install the latest mainline version";
+    echo "   $0 cron     - to run with cron (no installation is done here)";
 }
 
 function update_version()
 {
-    TRAC_FILE="https://trac.nginx.org/nginx/export/HEAD/nginx/.hgtags";
-    NGINX_INSTALLED_VER=`nginx -v 2>&1 | cut -d\/ -f2`;
-    NGINX_VER=`wget -q ${TRAC_FILE} -O - | tail -1 | cut -d\- -f2`;
-    cd /usr/local/directadmin/custombuild;
-    cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
-    mv -f custom_versions.txt.new custom_versions.txt;
-    echo "nginx:${NGINX_VER}:" >> custom_versions.txt;
+    VERSIONS_FILES="";
+    VERSIONS_FILES="${VERSIONS_FILES} https://hg.nginx.org/nginx/raw-file/tip/.hgtags";               # Official Mercurial Mirror
+    VERSIONS_FILES="${VERSIONS_FILES} https://trac.nginx.org/nginx/export/HEAD/nginx/.hgtags";        # TRAC
+    VERSIONS_FILES="${VERSIONS_FILES} https://raw.githubusercontent.com/nginx/nginx/master/.hgtags";  # GitHub
+
+    # Version number of installed NGINX
+    NGINX_INSTALLED_VER=$(nginx -v 2>&1 | cut -d\/ -f2);
+
+    for VERSIONS_FILE in ${VERSIONS_FILES};
+    do
+    {
+        NGINX_VER=$(wget -q ${VERSIONS_FILE} -O - | tail -1 | cut -d\- -f2 | grep -o '[0-9]*\.[0-9]*\.[0-9]*');
+        [ -n "${NGINX_VER}" ] && break;
+    }
+    done;
+
+    if [ -n "${NGINX_VER}" ]; then
+    {
+        cd /usr/local/directadmin/custombuild;
+        cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
+        mv -f custom_versions.txt.new custom_versions.txt;
+        echo "nginx:${NGINX_VER}:" >> custom_versions.txt;
+    }
+    fi;
 }
 
 function show_versions()
