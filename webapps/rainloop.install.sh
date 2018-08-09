@@ -3,9 +3,10 @@
 #
 # A script to install/upgrade Rainloop on Directadmin server
 #   Written by Alex S Grebenschikov (support@poralix.com)
-#   Version: v.0.1.1 $ Tue Aug  8 10:45:20 +07 2017
+#   Version: v.0.2 $ Thu Aug  9 16:00:01 +07 2018
 #
 #   Versions:
+#           - v.0.1.1 $ Tue Aug  8 10:45:20 +07 2017
 #           - v.0.1 $ Wed Jul 12 15:49:10 +07 2017
 #
 # TO DO:
@@ -22,12 +23,31 @@ MYSQL_HOST="localhost";
 MYSQL_PASSWORD="";
 MYSQL_ACCESS_HOST="localhost";
 
-die() {
+die()
+{
     echo "$1"; exit $2;
 }
 
-genpass() {
+genpass()
+{
     tr -cd 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head -c${1:-`perl -le 'print int rand(7) + 10'`}
+}
+
+genhtaccess()
+{
+    HTAF="/var/www/html/rainloop/data/.htaccess";
+    if [ -f "${HTAF}" ]; then
+        echo "[OK] Found ${HTAF} file. Make sure it blocks access to the data folder over HTTP/HTTPS (Apache and NGINX/Apache only)...";
+        grep -m1 -q "^Deny from all" "${HTAF}" || echo -e "\nDeny from all" >> "${HTAF}";
+    else
+        echo "[OK] Creating ${HTAF} file to block access to the data folder over HTTP/HTTPS (Apache and NGINX/Apache only)...";
+        touch "${HTAF}";
+        chown webapps:webapps "${HTAF}";
+        echo "Deny from all" > "${HTAF}";
+        echo "<IfModule mod_autoindex.c>" >> "${HTAF}";
+        echo "	Options -Indexes" >> "${HTAF}";
+        echo "</ifModule>" >> "${HTAF}";
+    fi;
 }
 
 MYSQL="/usr/local/bin/mysql";
@@ -38,17 +58,23 @@ MYSQL_OPT="--defaults-extra-file=/usr/local/directadmin/conf/my.cnf";
 
 # DOWNLOAD SOURCE FILE
 cd /var/www/html || die "Directory /var/www/html does not exist! Terminating..." 1;
-wget -O ${SOURCE} ${URL};
+wget -O "${SOURCE}" "${URL}";
 
 # UNPACK SOURCE FILE
 [ -s "${SOURCE}" ] || die "Download failed or file is corrupted! Terminating..." 1;
 [ -x "/usr/bin/unzip" ] || die "Unzip is not installed on your server! Terminating...";
-/usr/bin/unzip -o ${SOURCE} -d rainloop;
+/usr/bin/unzip -o "${SOURCE}" -d rainloop;
+
+# GENERATE HTACCESS FILE
+genhtaccess;
 
 # SET CORRECT PERMISSIONS
 [ -d "/var/www/html/rainloop" ] || die "Rainloop failed to unpack! Terminating...";
+echo "[OK] Setting correct permissions on folders of RainLoop...";
 find /var/www/html/rainloop/ -type d -exec chmod 755 {} \;
+echo "[OK] Setting correct permissions on files of RainLoop...";
 find /var/www/html/rainloop/ -type f -exec chmod 644 {} \;
+echo "[OK] Settings correct owner of RainLoop files and folders...";
 chown -R webapps:webapps /var/www/html/rainloop/;
 
 # UPDATE ALIASES WITH CUSTOMBUILD
@@ -57,6 +83,7 @@ chown -R webapps:webapps /var/www/html/rainloop/;
 [ -f "/usr/local/directadmin/custombuild/custom/webapps.list" ] || touch "/usr/local/directadmin/custombuild/custom/webapps.list";
 c=$(grep -c "rainloop=rainloop" /usr/local/directadmin/custombuild/custom/webapps.list);
 if [ "$c" == "0"  ]; then
+    echo "[OK] Updating web-server configuration for RainLoop...";
     echo "rainloop=rainloop" >> /usr/local/directadmin/custombuild/custom/webapps.list;
     cd /usr/local/directadmin/custombuild;
     ./build rewrite_confs;
