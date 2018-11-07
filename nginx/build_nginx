@@ -6,7 +6,7 @@
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.3.1 (Mon Jul  9 12:28:48 +07 2018)                            #
+#            Version: 0.3.2 (Wed Nov  7 12:06:05 +07 2018)                            #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -44,7 +44,7 @@ function usage()
     echo "#                                                                      #";
     echo "#  A script to install a mainline version of NGINX with custombuild2   #";
     echo "#  A version number of NGINX mainline is taken from NGINX's trac site  #";
-    echo "#            Version: 0.3.1 (Mon Jul  9 12:28:48 +07 2018)             #";
+    echo "#            Version: 0.3.2 (Wed Nov  7 12:06:05 +07 2018)             #";
     echo "#            Written by: Alex S Grebenschikov (zEitEr)                 #";
     echo "#                                                                      #";
     echo "########################################################################";
@@ -59,9 +59,9 @@ function usage()
 function update_version()
 {
     VERSIONS_FILES="";
-    VERSIONS_FILES="${VERSIONS_FILES} https://hg.nginx.org/nginx/raw-file/tip/.hgtags";               # Official Mercurial Mirror
-    VERSIONS_FILES="${VERSIONS_FILES} https://trac.nginx.org/nginx/export/HEAD/nginx/.hgtags";        # TRAC
     VERSIONS_FILES="${VERSIONS_FILES} https://raw.githubusercontent.com/nginx/nginx/master/.hgtags";  # GitHub
+    VERSIONS_FILES="${VERSIONS_FILES} https://trac.nginx.org/nginx/export/HEAD/nginx/.hgtags";        # TRAC
+    VERSIONS_FILES="${VERSIONS_FILES} https://hg.nginx.org/nginx/raw-file/tip/.hgtags";               # Official Mercurial Mirror
 
     # Version number of installed NGINX
     NGINX_INSTALLED_VER=$(nginx -v 2>&1 | cut -d\/ -f2);
