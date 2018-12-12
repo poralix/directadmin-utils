@@ -35,7 +35,7 @@ function do_usage()
 
 Usage:
 
-$0 <command> <pecl_extension> [<php-version>]
+$0 <command> <pecl_extension> [<php-version>] [<options>]
 
         Supported commands:
 
@@ -46,6 +46,11 @@ $0 <command> <pecl_extension> [<php-version>]
         php-version - digits only (only one version at a time):
 
             52, 53, 54, 55, 56, 70, 71, 72, 73, etc
+
+        options:
+
+            --beta  - to install a beta version of an extension
+
 ";
 
     exit 1;
