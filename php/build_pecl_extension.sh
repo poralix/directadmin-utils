@@ -30,7 +30,7 @@ function do_usage()
 # A script to install/update/remove pecl extension      #
 # for all installed by CustomBuild 2.x PHP versions     #
 # Written by Alex Grebenschikov(support@poralix.com)    #
-# Version: 0.5-beta $ Tue Jun 12 02:27:32 PDT 2018      #
+# Version: 0.6-beta $ Wed Dec 12 11:28:24 +07 2018      #
 # ===================================================== #
 
 Usage:
@@ -206,7 +206,11 @@ do_install()
     {
         tmpfile=$(mktemp ${WORKDIR}/tmp.XXXXXXXXXX);
         ${PECL} channel-update pecl.php.net;
-        ${PECL} download ${EXT} 2>&1 | tee ${tmpfile};
+        if [ "${BETA}" == "1" ]; then
+            ${PECL} download ${EXT}-beta 2>&1 | tee ${tmpfile};
+        else
+            ${PECL} download ${EXT} 2>&1 | tee ${tmpfile};
+        fi;
         FILE=$(cat ${tmpfile} | grep ^File | grep downloaded | cut -d\  -f2);
         rm -f ${tmpfile};
     }
@@ -274,10 +278,14 @@ do_status()
             #echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} found!";
             IS_ENABLED=$(/usr/local/${PHPVER}/bin/php -m | grep -m1 "^${EXT}$");
             if [ -n "${IS_ENABLED}" ]; then
+            {
                 echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} seems to be enabled!";
                 /usr/local/${PHPVER}/bin/php -i | grep -i ^${EXT};
+            }
             else
+            {
                 echo "${BN}[WARNING]${BF} The extension ${BN}${EXT}${BF} is probably not enabled for ${BN}PHP ${PHP_VERSION}${BF}! I did not detect it.";
+            }
             fi;
         }
         else
@@ -292,22 +300,35 @@ do_status()
 CMD="${1}";
 EXT="${2}";
 PVN=`echo "${3}" | egrep -o '^(5|7)[0-9]+'`;
+BETA=0;
 
 [ "${PVN}" == "${3}" ] || do_usage;
 [ -n "${CMD}" ] || do_usage;
 [ -n "${EXT}" ] || do_usage;
+
+for ARG in $@;
+do
+    case "${ARG}" in
+        --beta)
+            BETA=1;
+        ;;
+    esac;
+done;
 
 case "${CMD}" in
     install)
         do_install;
     ;;
     remove)
+        BETA=0;
         do_remove;
     ;;
     status)
+        BETA=0;
         do_status;
     ;;
     *)
+        BETA=0;
         do_usage;
     ;;
 esac;
