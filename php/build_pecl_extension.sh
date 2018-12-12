@@ -2,10 +2,11 @@
 #
 # A script to install/update/remove pecl extension
 # for all installed by CustomBuild 2.x PHP versions
-# Written by Alex Grebenschikov(support@poralix.com)
+# Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
+# versions: 0.6-beta $ Wed Dec 12 11:23:45 +07 2018
+#           0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
 #           0.4-beta $ Tue May 15 14:08:57 +07 2018
 #           0.3-beta $ Wed May  2 20:36:54 +07 2018
 #           0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
@@ -40,10 +41,11 @@ $0 <command> <pecl_extension> [<php-version>]
 
             install - to install extension
             remove  - to remove extension
+            status  - show status of an extension
 
         php-version - digits only (only one version at a time):
 
-            52, 53, 54, 55, 56, 70, 71, 72, etc
+            52, 53, 54, 55, 56, 70, 71, 72, 73, etc
 ";
 
     exit 1;
@@ -247,6 +249,46 @@ do_install()
     [ -d "${PWD}" ] && cd ${PWD};
 }
 
+do_status()
+{
+    verify_php_version;
+    if [ -n "${PVN}" ]; then
+    {
+        PHP_VERSIONS="${PVN}";
+    }
+    else
+    {
+        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7)[0-9]+' | xargs`;
+    }
+    fi;
+
+    for PHP_VERSION in ${PHP_VERSIONS};
+    do
+    {
+        PHPVER="php${PHP_VERSION}";
+
+        EXT_DIR=$(/usr/local/${PHPVER}/bin/php -i 2>&1 | grep ^extension_dir | awk '{print $3}');
+        EXT_FILE="${EXT_DIR}/${EXT}.so";
+        if [ -f "${EXT_FILE}" ]; then
+        {
+            #echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} found!";
+            IS_ENABLED=$(/usr/local/${PHPVER}/bin/php -m | grep -m1 "^${EXT}$");
+            if [ -n "${IS_ENABLED}" ]; then
+                echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} seems to be enabled!";
+                /usr/local/${PHPVER}/bin/php -i | grep -i ^${EXT};
+            else
+                echo "${BN}[WARNING]${BF} The extension ${BN}${EXT}${BF} is probably not enabled for ${BN}PHP ${PHP_VERSION}${BF}! I did not detect it.";
+            fi;
+        }
+        else
+        {
+            echo "${BN}[Warning]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} not found!";
+        }
+        fi;
+    }
+    done;
+}
+
 CMD="${1}";
 EXT="${2}";
 PVN=`echo "${3}" | egrep -o '^(5|7)[0-9]+'`;
@@ -261,6 +303,9 @@ case "${CMD}" in
     ;;
     remove)
         do_remove;
+    ;;
+    status)
+        do_status;
     ;;
     *)
         do_usage;
