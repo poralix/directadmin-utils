@@ -1,6 +1,6 @@
 # Scripts for operations with PHP
 
-- build_pecl_extension.sh 
+- php-extension.sh 
 - bulk_run_php.sh
 - change_domain_phpver.sh
 - test_sockets_ssl.php
@@ -15,16 +15,27 @@ Written by: Alex Grebenschikov (support@poralix.com)
 ```
 Usage:
 
-./build_pecl_extension.sh <command> <pecl_extension> [<php-version>]
+./php-extension.sh <command> <pecl_extension> [<options>]
 
         Supported commands:
 
-            install - to install extension
-            remove  - to remove extension
+            install   - to install extension
+            remove    - to remove extension
+            status    - show status of an extension
 
-        php-version - digits only (only one version at a time):
+        options:
 
-            52, 53, 54, 55, 56, 70, 71, 72, etc
+            --ver=VER - to install a specified version of an extension
+
+            --beta    - to install a beta version of an extension
+
+            --php=VER - to install extension for one PHP version
+                        digits only (only one version at a time):
+                        52, 53, 54, 55, 56, 70, 71, 72, 73, etc
+
+
+
+
 ```
 
 # Description of bulk_run_php.sh

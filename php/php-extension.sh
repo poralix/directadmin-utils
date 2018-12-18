@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.6-beta $ Wed Dec 12 11:23:45 +07 2018
+# versions: 0.7-beta $ Tue Dec 18 13:54:09 +07 2018
+#           0.6-beta $ Wed Dec 12 11:23:45 +07 2018
 #           0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
 #           0.4-beta $ Tue May 15 14:08:57 +07 2018
 #           0.3-beta $ Wed May  2 20:36:54 +07 2018
@@ -30,26 +31,28 @@ function do_usage()
 # A script to install/update/remove pecl extension      #
 # for all installed by CustomBuild 2.x PHP versions     #
 # Written by Alex Grebenschikov(support@poralix.com)    #
-# Version: 0.6-beta $ Wed Dec 12 11:28:24 +07 2018      #
+# Version: 0.7-beta $ Tue Dec 18 13:54:09 +07 2018      #
 # ===================================================== #
 
 Usage:
 
-$0 <command> <pecl_extension> [<php-version>] [<options>]
+$0 <command> <pecl_extension> [<options>]
 
         Supported commands:
 
-            install - to install extension
-            remove  - to remove extension
-            status  - show status of an extension
-
-        php-version - digits only (only one version at a time):
-
-            52, 53, 54, 55, 56, 70, 71, 72, 73, etc
+            install   - to install extension
+            remove    - to remove extension
+            status    - show status of an extension
 
         options:
 
-            --beta  - to install a beta version of an extension
+            --ver=VER - to install a specified version of an extension
+
+            --beta    - to install a beta version of an extension
+
+            --php=VER - to install extension for one PHP version
+                        digits only (only one version at a time):
+                        52, 53, 54, 55, 56, 70, 71, 72, 73, etc
 
 ";
 
@@ -213,6 +216,8 @@ do_install()
         ${PECL} channel-update pecl.php.net;
         if [ "${BETA}" == "1" ]; then
             ${PECL} download ${EXT}-beta 2>&1 | tee ${tmpfile};
+        elif [ -n "${EXT_VERSION}" ]; then
+            ${PECL} download ${EXT}-${EXT_VERSION} 2>&1 | tee ${tmpfile};
         else
             ${PECL} download ${EXT} 2>&1 | tee ${tmpfile};
         fi;
@@ -304,10 +309,9 @@ do_status()
 
 CMD="${1}";
 EXT="${2}";
-PVN=`echo "${3}" | egrep -o '^(5|7)[0-9]+'`;
-BETA=0;
+PVN="";
+BETA="";
 
-[ "${PVN}" == "${3}" ] || do_usage;
 [ -n "${CMD}" ] || do_usage;
 [ -n "${EXT}" ] || do_usage;
 
@@ -317,8 +321,21 @@ do
         --beta)
             BETA=1;
         ;;
+        --php=*)
+            PVN=`echo "${ARG}" | cut -d\= -f2 | egrep -o '^(5|7)[0-9]+'`;
+            [ -z "${PVN}" ] && do_usage;
+        ;;
+        --ver=*)
+            EXT_VERSION=`echo "${ARG}" | cut -d\= -f2`;
+            [ -z "${EXT_VERSION}" ] && do_usage;
+        ;;
     esac;
 done;
+
+if [ -n "${BETA}" ] && [ -n "${EXT_VERSION}" ]; then
+    echo "Can not use --beta and --ver= together at the same time...";
+    exit 2;
+fi;
 
 case "${CMD}" in
     install)
