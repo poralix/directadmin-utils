@@ -6,9 +6,9 @@
 - test_sockets_ssl.php
 
 
-# Description of build_pecl_extension.sh 
+# Description of php-extension.sh 
 
-A script to install/update/remove pecl extension for all installed by CustomBuild 2.x PHP versions
+A script to install/update/remove PECL extension for installed by CustomBuild 2.x PHP versions
 
 Written by: Alex Grebenschikov (support@poralix.com)
 
