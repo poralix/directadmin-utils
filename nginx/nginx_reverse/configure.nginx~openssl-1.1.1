@@ -1,30 +1,35 @@
 #!/bin/sh
 #
-# Poralix.com
+# Customized by Poralix.com to build NGINX with support of TLSv1.3
+# Last modified: Wed Jan  9 00:29:38 +07 2019
 #
-OPENSSL_VER="tls1.3-draft-18";
-OPENSSL_LINK="https://github.com/openssl/openssl/archive/${OPENSSL_VER}.tar.gz";
-wget ${OPENSSL_LINK} -O openssl-${OPENSSL_VER}.tar.gz;
-tar -zxvf openssl-${OPENSSL_VER}.tar.gz;
+
+OPENSSL_VER="1.1.1";
+OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}-latest.tar.gz";
+
+OPENSSL_NAME="openssl_tls_1_3.tar.gz";
+wget ${OPENSSL_URL} -O ${OPENSSL_NAME};
+
+[ -f "${OPENSSL_NAME}" ] && tar -zxvf ${OPENSSL_NAME};
 PWD=`pwd`;
-OPENSSL_DIR=`find ${PWD} -type d -name openssl-${OPENSSL_VER}`;
+OPENSSL_DIR=`find ${PWD} -type d -name openssl-${OPENSSL_VER}\*`;
 ./configure \
-	"--user=nginx" \
-	"--group=nginx" \
-	"--prefix=/usr" \
-	"--sbin-path=/usr/sbin" \
-	"--conf-path=/etc/nginx/nginx.conf" \
-	"--pid-path=/var/run/nginx.pid" \
-	"--http-log-path=/var/log/nginx/access_log" \
-	"--error-log-path=/var/log/nginx/error_log" \
-	"--with-ipv6" \
-	"--without-mail_imap_module" \
-	"--without-mail_smtp_module" \
-	"--with-http_ssl_module" \
-	"--with-http_realip_module" \
-	"--with-http_stub_status_module" \
-	"--with-http_gzip_static_module" \
-	"--with-http_dav_module" \
-	"--with-cc-opt='-D FD_SETSIZE=32768'" \
-	"--with-openssl=${OPENSSL_DIR}" \
-	"--with-openssl-opt='enable-tls1_3'"
+        "--user=nginx" \
+        "--group=nginx" \
+        "--prefix=/usr" \
+        "--sbin-path=/usr/sbin" \
+        "--conf-path=/etc/nginx/nginx.conf" \
+        "--pid-path=/var/run/nginx.pid" \
+        "--http-log-path=/var/log/nginx/access_log" \
+        "--error-log-path=/var/log/nginx/error_log" \
+        "--without-mail_imap_module" \
+        "--without-mail_smtp_module" \
+        "--with-http_ssl_module" \
+        "--with-http_realip_module" \
+        "--with-http_stub_status_module" \
+        "--with-http_gzip_static_module" \
+        "--with-http_dav_module" \
+        "--with-http_v2_module" \
+        "--with-openssl=${OPENSSL_DIR}" \
+        "--with-openssl-opt=enable-tls1_3" \
+        "--with-cc-opt='-D FD_SETSIZE=32768'"
