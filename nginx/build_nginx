@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #######################################################################################
 #                                                                                     #
-#       A script to install a mainline version of NGINX with custombuild2             #
+#       A script to install a mainline/stable version of NGINX with custombuild2      #
 #       A version number of NGINX mainline is taken from NGINX's trac site            #
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.3.2 (Wed Nov  7 12:06:05 +07 2018)                            #
+#            Version: 0.4.0 (Tue Jan  8 23:16:51 +07 2019)                            #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -42,21 +42,48 @@ function usage()
 
     echo "########################################################################";
     echo "#                                                                      #";
-    echo "#  A script to install a mainline version of NGINX with custombuild2   #";
-    echo "#  A version number of NGINX mainline is taken from NGINX's trac site  #";
-    echo "#            Version: 0.3.2 (Wed Nov  7 12:06:05 +07 2018)             #";
+    echo "#  A script to install either a mainline or stable version of NGINX    #";
+    echo "#            for Directadmin Custombuild2                              #";
+    echo "#  A version of NGINX mainline will be installed by default            #";
+    echo "#            Version: 0.4.0 (Tue Jan  8 23:16:51 +07 2019)             #";
     echo "#            Written by: Alex S Grebenschikov (zEitEr)                 #";
     echo "#                                                                      #";
     echo "########################################################################";
     echo "";
     echo "Usage:";
-    echo "   $0 versions - to update information of available mainline version ";
-    echo "   $0 download - to download the latest available mainline version ";
-    echo "   $0 install  - to download and install the latest mainline version";
-    echo "   $0 cron     - to run with cron (no installation is done here)";
+    echo "   $0 versions <branch> - to update information of available mainline version ";
+    echo "   $0 download <branch> - to download the latest available mainline version ";
+    echo "   $0 install <branch>  - to download and install the latest mainline version";
+    echo "   $0 cron <branch>     - to run with cron (no installation is done here)";
+    echo "   $0 set-cron <branch> - to install a cron-task to run 'cron --${BRANCH}' nightly";
+    echo "";
+    echo "Branches (optional):"
+    echo "   --mainline           - (default value) actively developed, includes new features";
+    echo "   --stable             - stabe version, recieves only bug-fixes";
 }
 
-function update_version()
+function update_versions()
+{
+    update_version_stable;
+    update_version_mainline;
+
+    cd /usr/local/directadmin/custombuild;
+    cat "custom_versions.txt" | grep -Ev "^nginx:|^nginx_stable:|^nginx_mainline:|^$" > "custom_versions.txt.new";
+
+    if [ "${BRANCH}" == "mainline" ]; then
+        NGINX_VER="${NGINX_VER_MAINLINE}";
+    else
+        NGINX_VER="${NGINX_VER_STABLE}";
+    fi;
+
+    [ -n "${NGINX_VER_MAINLINE}" ] && echo "nginx_mainline:${NGINX_VER_MAINLINE}:" >> custom_versions.txt.new;
+    [ -n "${NGINX_VER_STABLE}" ] && echo "nginx_stable:${NGINX_VER_STABLE}:" >> custom_versions.txt.new;
+    [ -n "${NGINX_VER}" ] && echo "nginx:${NGINX_VER}:" >> "custom_versions.txt.new";
+
+    mv -f "custom_versions.txt.new" "custom_versions.txt";
+}
+
+function update_version_mainline()
 {
     VERSIONS_FILES="";
     VERSIONS_FILES="${VERSIONS_FILES} https://raw.githubusercontent.com/nginx/nginx/master/.hgtags";  # GitHub
@@ -69,24 +96,24 @@ function update_version()
     for VERSIONS_FILE in ${VERSIONS_FILES};
     do
     {
-        NGINX_VER=$(wget -q ${VERSIONS_FILE} -O - | tail -1 | cut -d\- -f2 | grep -o '[0-9]*\.[0-9]*\.[0-9]*');
-        [ -n "${NGINX_VER}" ] && break;
+        NGINX_VER_MAINLINE=$(wget -q ${VERSIONS_FILE} -O - | tail -1 | cut -d\- -f2 | grep -o '[0-9]*\.[0-9]*\.[0-9]*');
+        [ -n "${NGINX_VER_MAINLINE}" ] && break;
     }
     done;
+}
 
-    if [ -n "${NGINX_VER}" ]; then
-    {
-        cd /usr/local/directadmin/custombuild;
-        cat custom_versions.txt | grep -Ev "^nginx:|^$" > custom_versions.txt.new;
-        mv -f custom_versions.txt.new custom_versions.txt;
-        echo "nginx:${NGINX_VER}:" >> custom_versions.txt;
-    }
-    fi;
+function update_version_stable()
+{
+    # Version number of installed NGINX
+    NGINX_INSTALLED_VER=$(nginx -v 2>&1 | cut -d\/ -f2);
+    NGINX_VER_STABLE=$(/bin/curl -s http://nginx.org/packages/centos/7/x86_64/RPMS/ | grep -o "nginx-[0-9]*\.[0-9]*\.[0-9]*-[0-9]*\.el7[_0-9]*\.ngx.x86_64.rpm" | cut -d\- -f2 | sort --version-sort | tail -1);
+
 }
 
 function show_versions()
 {
-    echo "Latest mainline version of Nginx: ${NGINX_VER}";
+    echo "Latest stable version of Nginx: ${NGINX_VER_STABLE} ${SELECTED_STABLE}";
+    echo "Latest mainline version of Nginx: ${NGINX_VER_MAINLINE} ${SELECTED_MAINLINE}";
     echo "Installed version of Nginx: ${NGINX_INSTALLED_VER}";
 }
 
@@ -103,23 +130,57 @@ function install_nginx()
     ./build nginx;
 }
 
+function set_cron()
+{
+    cd /usr/local/directadmin/custombuild/
+    wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/nginx/build_nginx -O ./build_nginx
+    chmod 755 ./build_nginx
+
+    touch /etc/cron.d/0build_nginx;
+    chmod 644 /etc/cron.d/0build_nginx;
+    echo "21 4 * * * root /usr/local/directadmin/custombuild/build_nginx cron --${BRANCH}" > /etc/cron.d/0build_nginx;
+}
+
+BRANCH="mainline";
+SELECTED_MAINLINE="(selected)";
+SELECTED_STABLE="";
+
+for arg in $@;
+do
+    case ${arg} in
+        --stable)
+            BRANCH="stable";
+            SELECTED_MAINLINE="";
+            SELECTED_STABLE="(selected)";
+        ;;
+        --mainline|*)
+            BRANCH="mainline";
+            SELECTED_MAINLINE="(selected)";
+            SELECTED_STABLE="";
+        ;;
+    esac;
+done;
+
 case "$1" in
     "download")
-        update_version;
+        update_versions;
         download_nginx;
         ;;
     "cron")
-        update_version >/dev/null 2>&1;
+        update_versions >/dev/null 2>&1;
         download_nginx >/dev/null 2>&1;
         ;;
     "versions")
-        update_version;
+        update_versions;
         show_versions;
         ;;
     "install")
-        update_version;
+        update_versions;
         download_nginx;
         install_nginx;
+        ;;
+    "set-cron")
+        set_cron;
         ;;
     *)
         usage;
