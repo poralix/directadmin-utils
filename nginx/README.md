@@ -6,8 +6,9 @@ If you need custom installation or support please feel free to request it here o
 # Structure
 
 **./nginx/build_nginx** - A script to install either stable or mainline version of NGINX with custombuild2. 
-A version number of NGINX mainline is taken from NGINX's trac site.
-A version number of NGINX stable is taken from the official NGINX's repository for CentOS 7
+
+- A version number of NGINX mainline is taken from NGINX's trac site.
+- A version number of NGINX stable is taken from the official NGINX's repository for CentOS 7
 
 **./nginx/build_nginx2** - A script to install a mainline version of NGINX with custombuild2. 
 A version number of NGINX mainline is taken from versions.txt of Directadmin.
