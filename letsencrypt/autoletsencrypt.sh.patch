@@ -1,0 +1,39 @@
+--- autoletsencrypt.sh	2018-07-05 05:29:48.000000000 +0700
++++ autoletsencrypt_mail.sh	2019-01-12 15:06:06.000000000 +0700
+@@ -1,5 +1,23 @@
+ #!/bin/sh
+-VERSION=1.2
++VERSION=1.2.patched
++###############################################################################
++#                                                                             #
++#          Automatically setup LetsEncrypt SSL for *all* domains              #
++#               that do not currently have a certificate                      #
++#                                                                             #
++###############################################################################
++#                                                                             #
++#                  Original script written by Directadmin                     #
++#               https://help.directadmin.com/item.php?id=675                  #
++#   http://files.directadmin.com/services/all/letsencrypt/autoletsencrypt.sh  #
++#                                                                             #
++###############################################################################
++#                                                                             #
++#               Patched by Poralix to add mail subdomain into certs           #
++#      Last modified: Sat Jan 12 15:04:00 +07 2019 (support@poralix.com)      #
++#                                                                             #
++###############################################################################
++
+ WELLKNOWN_PATH="/var/www/html/.well-known/acme-challenge"
+ TIMESTAMP=`date +%s`
+ CURL=/usr/local/bin/curl
+@@ -29,7 +47,10 @@
+                     	CHALLENGE_TEST=`challenge_check $d`
+                     	if [ ${CHALLENGE_TEST} -ne 1 ]; then
+                     		CHALLENGE_TEST2=`challenge_check www.$d`
+-                    		if [ ${CHALLENGE_TEST2} -ne 1 ]; then
++                    		CHALLENGE_TEST3=`challenge_check mail.$d`
++                    		if [ ${CHALLENGE_TEST2} -ne 1 ] && [ ${CHALLENGE_TEST3} -ne 1 ]; then
++                    			/usr/local/directadmin/scripts/letsencrypt.sh request ${d},www.${d},mail.${d} 4096
++                    		elif [ ${CHALLENGE_TEST2} -ne 1 ]; then
+                     			/usr/local/directadmin/scripts/letsencrypt.sh request ${d} 4096
+                     		else
+                     			/usr/local/directadmin/scripts/letsencrypt.sh request_single ${d} 4096
