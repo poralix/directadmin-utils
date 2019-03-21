@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.7-beta $ Tue Dec 18 13:54:09 +07 2018
+# versions: 0.8-beta $ Thu Mar 21 17:54:46 +07 2019
+#           0.7-beta $ Tue Dec 18 13:54:09 +07 2018
 #           0.6-beta $ Wed Dec 12 11:23:45 +07 2018
 #           0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
 #           0.4-beta $ Tue May 15 14:08:57 +07 2018
@@ -16,7 +17,7 @@
 
 PWD=`pwd`;
 WORKDIR="/usr/local/src";
-PECL=`ls -1 /usr/local/php*/bin/pecl | head -1`;
+PECL=$(ls -1 /usr/local/php*/bin/pecl /usr/local/bin/pecl 2>/dev/null | head -1);
 LANG=C;
 FILE="";
 EXT="";
@@ -237,12 +238,13 @@ do_install()
         if [ -z "${PHPVER}" ];
         then
         {
-            for PHPIZE in `ls -1 /usr/local/php*/bin/phpize`;
+            for PHPIZE in $(ls -1 /usr/local/php*/bin/phpize /usr/local/bin/phpize);
             do
             {
                 PHPVER=$(echo ${PHPIZE} | grep -o "[0-9]*");
                 do_update ${PHPIZE};
                 do_update_ini ${PHPVER};
+                echo; sleep 1;
             }
             done;
         }
