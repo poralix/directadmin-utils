@@ -12,6 +12,8 @@ A script to install/update/remove PECL extension for installed by CustomBuild 2.
 
 Written by: Alex Grebenschikov (support@poralix.com)
 
+**IMPORTANT**: mod_php is not supported at the moment
+
 ```
 Usage:
 
