@@ -6,9 +6,10 @@
 #######################################################################################
 #                                                                                     #
 #            Versions:                                                                #
+#                      0.5-beta (Thu Jun 27 10:19:12 +07 2019)                        #
 #                      0.4-beta (Tue May 22 12:53:02 +07 2018)                        #
 #                      0.3      (Wed Mar 14 17:49:04 +07 2018)                        #
-#            Written by: Alex S Grebenschikov (zEitEr)                                #
+#            Written by: Alex Grebenschikov (zEitEr)                                  #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
 #######################################################################################
@@ -16,7 +17,7 @@
 ##                                                                                    #
 ##   MIT License                                                                      #
 ##                                                                                    #
-##   Copyright (c) 2016 Alex S Grebenschikov (www.poralix.com)                        #
+##   Copyright (c) 2016 Alex Grebenschikov, Poralix, www.poralix.com                  #
 ##                                                                                    #
 ##   Permission is hereby granted, free of charge, to any person obtaining a copy     #
 ##   of this software and associated documentation files (the "Software"), to deal    #
@@ -40,13 +41,14 @@
 
 BN="`tput -Txterm bold`";
 BF="`tput -Txterm sgr0`";
+DA_BIN="/usr/local/directadmin/directadmin";
 
 usage()
 {
     echo "
 ######################################################################################
 #    A script to update Directadmin from beta or stable channel                      #
-#    Written by: Alex S Grebenschikov (zEitEr), www.poralix.com                      #
+#    Written by: Alex Grebenschikov (zEitEr), Poralix, www.poralix.com               #
 ######################################################################################
 
     ${BN}Usage${BF} $0 <cmd> [<options>]
@@ -56,6 +58,7 @@ usage()
             beta    - Download and install Directadmin update from beta channel
             version - Show installed version of Directadmin
             list_os - Show supported OS and their versions
+            save_os - Save os_override option in directadmin.conf with value --os=
             license - Show License ID and User ID as how Directadmin sees it
 
         ${BN}Options${BF}:
@@ -76,13 +79,18 @@ usage()
         ${BN}or any combinations with${BF}:
 
             $0 beta --ip=1.2.3.4 --lid=12345 --uid=6789 --os=c9
+
+        in the suggested example the script will try to download a directadmin
+        binary compiled for ES_7.0_64 (CentOS 7 64 bit), connected from IP 1.2.3.4
+        and using License ID 12345 owned by user with ID 6789.
 ";
 }
 
 die()
 {
     echo "[ERROR] $1";
-    exit 1;
+    exit_code="${2:-1}";
+    exit "${exit_code}";
 }
 
 getLicenseDetails()
@@ -90,7 +98,7 @@ getLicenseDetails()
     TMPFILE=$(mktemp);
     SETUP_FILE="/usr/local/directadmin/scripts/setup.txt";
     if [ -f "${TMPFILE}" ]; then
-        /usr/local/directadmin/directadmin l > ${TMPFILE};
+        ${DA_BIN} l > ${TMPFILE};
         [ -z "${DA_UID}" ] && DA_UID=$(cat "${TMPFILE}" | grep ^uid= | cut -d\= -f2);
         [ -z "${DA_LID}" ] && DA_LID=$(cat "${TMPFILE}" | grep ^lid= | cut -d\= -f2);
         rm -f "${TMPFILE}";
@@ -131,12 +139,11 @@ doProcess()
     else
         if [ -n "${DA_OS}" ];
         then 
-            OS_choice=`getOS "${DA_OS}"`;
+            OS_choice=$(getOS "${DA_OS}");
             if [ -n "${OS_choice}" ]; then
                 DA_OS="&os=${OS_choice}";
             else
-                echo "[ERROR] Could not find OS with the code ${DA_OS}. To list support OS with codes run: $0 list_os";
-                exit 2;
+                die "Could not find OS with the code ${DA_OS}. To list supported OS with codes run: $0 list_os" 2;
             fi;
         fi;
     fi;
@@ -169,8 +176,8 @@ doProcess()
 
 doVersion()
 {
-    /usr/local/directadmin/directadmin v;
-    /usr/local/directadmin/directadmin o;
+    ${DA_BIN} v;
+    ${DA_BIN} o;
 }
 
 doStableUpdate()
@@ -264,7 +271,7 @@ doListOS()
             OUTPUT="${OUTPUT}\n${distr} Code\n==================== ======";
             OSversions=${distr}[@];
             index=0;
-            for OSversion in "${!OSversions}"
+            for OSversion in "${!OSversions}";
             do
                 let index=(index+1);
                 if [ -n "${OS_OVERRIDE}" ]; then
@@ -282,6 +289,16 @@ doListOS()
     echo -ne "${OUTPUT}" 2>/dev/null | column -t 2>/dev/null;
 }
 
+doSaveOS()
+{
+    [ -z "${DA_OS}" ] && die "You should specify OS code in --os=, run $0 list_os too see possible variants";
+
+    OS_choice=$(getOS "${DA_OS}");
+    [ -z "${OS_choice}" ] && die "Could not find OS with the code ${DA_OS}. To list supported OS with codes run: $0 list_os" 2;
+
+    ${DA_BIN} set os_override "${OS_choice//\ /%20}" restart;
+}
+
 os_override_warning()
 {
     if [ -n "${OS_OVERRIDE}" ]; then
@@ -297,7 +314,9 @@ USER=$(whoami);
 
 [ "root" == "${USER}" ] || die "Should be root to run this programm...";
 
-OS_OVERRIDE=$(/usr/local/directadmin/directadmin c | grep ^os_override= | cut -d= -f2);
+[ -x "${DA_BIN}" ] || die "Could not find directadmin binary. Is DirectAdmin installed?";
+
+OS_OVERRIDE=$(${DA_BIN} c | grep ^os_override= | cut -d= -f2);
 
 for option in $@;
 do
@@ -334,6 +353,9 @@ case "$1" in
     list_os)
         doListOS;
         SHOW_OS_OVERRIDE_WARNING=1;
+    ;;
+    save_os)
+        doSaveOS;
     ;;
     license)
         doLicenseDetails;
