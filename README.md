@@ -1,7 +1,9 @@
+<p align="center"><a href="https://directadmin.com"><img src="https://directadmin.com/img/logo/logo_directadmin.svg" alt="Directadmin" width="440px"/></a></p>
+
 # directadmin-utils
 
 A set of scripts for using on Directadmin servers with CustomBuild 2 or as self-standing solutions. 
-If you need custom installation or support please feel free to request it here or on our site http://www.poralix.com/
+If you need custom installation or support please feel free to request it here or on our site https://www.poralix.com/
 
 # Structure
 
@@ -47,3 +49,13 @@ wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/core/upd
 chmod 755 updateda.sh
 ./updateda.sh beta
 ```
+
+# Update Evolution skin in Directadmin
+
+```
+cd /root/
+wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/core/update_evolution.sh -O update_evolution.sh
+chmod 755 update_evolution.sh
+./update_evolution.sh
+```
+
