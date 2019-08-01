@@ -3,9 +3,11 @@
 #
 # A script to install/upgrade Rainloop on Directadmin server
 #   Written by Alex S Grebenschikov (support@poralix.com)
-#   Version: v.0.2 $ Thu Aug  9 16:00:01 +07 2018
+#   Version: v.0.2.1 $ Thu Aug  1 18:56:02 +07 2019
 #
 #   Versions:
+#           - v.0.2.1 $ Thu Aug  1 18:56:02 +07 2019
+#           - v.0.2.0 $ Thu Aug  9 16:00:01 +07 2018
 #           - v.0.1.1 $ Tue Aug  8 10:45:20 +07 2017
 #           - v.0.1 $ Wed Jul 12 15:49:10 +07 2017
 #
@@ -76,6 +78,9 @@ echo "[OK] Setting correct permissions on files of RainLoop...";
 find /var/www/html/rainloop/ -type f -exec chmod 644 {} \;
 echo "[OK] Settings correct owner of RainLoop files and folders...";
 chown -R webapps:webapps /var/www/html/rainloop/;
+
+# PROTECT DATA FOLDER
+chmod 700 /var/www/html/rainloop/data;
 
 # UPDATE ALIASES WITH CUSTOMBUILD
 [ -d "/usr/local/directadmin/custombuild" ] || die "CustomBuild not found! Terminating...";
