@@ -80,6 +80,7 @@ echo "[OK] Settings correct owner of RainLoop files and folders...";
 chown -R webapps:webapps /var/www/html/rainloop/;
 
 # PROTECT DATA FOLDER
+echo "[OK] Protecting RainLoop data files and folders...";
 chmod 700 /var/www/html/rainloop/data;
 
 # UPDATE ALIASES WITH CUSTOMBUILD
