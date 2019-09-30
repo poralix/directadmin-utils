@@ -6,6 +6,7 @@
 #######################################################################################
 #                                                                                     #
 #            Versions:                                                                #
+#                      0.6-beta (Mon Sep 30 02:35:39 EDT 2019)                        #
 #                      0.5-beta (Thu Jun 27 10:19:12 +07 2019)                        #
 #                      0.4-beta (Tue May 22 12:53:02 +07 2018)                        #
 #                      0.3      (Wed Mar 14 17:49:04 +07 2018)                        #
@@ -138,7 +139,7 @@ doProcess()
         DA_OS="&os=${OS_OVERRIDE}";
     else
         if [ -n "${DA_OS}" ];
-        then 
+        then
             OS_choice=$(getOS "${DA_OS}");
             if [ -n "${OS_choice}" ]; then
                 DA_OS="&os=${OS_choice}";
@@ -223,6 +224,7 @@ getAllOS()
     CentOS[7]='ES 6.0';
     CentOS[8]='ES 6.0 64';
     CentOS[9]='ES 7.0 64';
+    CentOS[10]='ES 8.0 64';
 
     FreeBSD[1]='FreeBSD 4.8';
     FreeBSD[2]='FreeBSD 5.1';
@@ -234,6 +236,7 @@ getAllOS()
     FreeBSD[8]='FreeBSD 9.1 32';
     FreeBSD[9]='FreeBSD 9.0 64';
     FreeBSD[10]='FreeBSD 11.0 64';
+    FreeBSD[11]='FreeBSD 12.0 64';
 
     Debian[1]='Debian 3.1';
     Debian[2]='Debian 5';
@@ -244,6 +247,7 @@ getAllOS()
     Debian[7]='Debian 7 64';
     Debian[8]='Debian 8 64';
     Debian[9]='Debian 9 64';
+    Debian[10]='Debian 10 64';
 }
 
 getOS()
@@ -369,3 +373,4 @@ esac;
 [ "${SHOW_OS_OVERRIDE_WARNING}" == "1" ] && os_override_warning;
 
 exit 0;
+
