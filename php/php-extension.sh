@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A script to install/update/remove pecl extension
 # for all installed by CustomBuild 2.x PHP versions
@@ -15,8 +15,14 @@
 # =====================================================
 #set -x
 
+OS=`uname`
+if [ ${OS} = "FreeBSD" ]; then
+mkdir -p /usr/local/pecl	
+    WORKDIR="/usr/local/pecl";
+else
+	WORKDIR="/usr/local/src";
+fi
 PWD=`pwd`;
-WORKDIR="/usr/local/src";
 PECL=$(ls -1 /usr/local/php*/bin/pecl /usr/local/bin/pecl 2>/dev/null | head -1);
 LANG=C;
 FILE="";
