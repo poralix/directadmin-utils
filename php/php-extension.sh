@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.8-beta $ Thu Mar 21 17:54:46 +07 2019
+# versions: 0.9-beta $ Sat Apr  3 11:19:27 PDT 2021
+#           0.8-beta $ Thu Mar 21 17:54:46 +07 2019
 #           0.7-beta $ Tue Dec 18 13:54:09 +07 2018
 #           0.6-beta $ Wed Dec 12 11:23:45 +07 2018
 #           0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
@@ -32,7 +33,7 @@ function do_usage()
 # A script to install/update/remove pecl extension      #
 # for all installed by CustomBuild 2.x PHP versions     #
 # Written by Alex Grebenschikov(support@poralix.com)    #
-# Version: 0.7-beta $ Tue Dec 18 13:54:09 +07 2018      #
+# Version: 0.9-beta $ Sat Apr  3 11:19:27 PDT 2021      #
 # ===================================================== #
 
 Usage:
@@ -53,7 +54,7 @@ $0 <command> <pecl_extension> [<options>]
 
             --php=VER - to install extension for one PHP version
                         digits only (only one version at a time):
-                        52, 53, 54, 55, 56, 70, 71, 72, 73, etc
+                        52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80, etc
 
 ";
 
@@ -177,7 +178,7 @@ do_remove()
     }
     else
     {
-        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7)[0-9]+' | xargs`;
+        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8)[0-9]+' | xargs`;
     }
     fi;
 
@@ -274,7 +275,7 @@ do_status()
     }
     else
     {
-        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7)[0-9]+' | xargs`;
+        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8)[0-9]+' | xargs`;
     }
     fi;
 
@@ -324,7 +325,7 @@ do
             BETA=1;
         ;;
         --php=*)
-            PVN=`echo "${ARG}" | cut -d\= -f2 | egrep -o '^(5|7)[0-9]+'`;
+            PVN=`echo "${ARG}" | cut -d\= -f2 | egrep -o '^(5|7|8)[0-9]+'`;
             [ -z "${PVN}" ] && do_usage;
         ;;
         --ver=*)
