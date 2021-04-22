@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A script to install/update/remove pecl extension
 # for all installed by CustomBuild 2.x PHP versions
@@ -14,10 +14,18 @@
 #           0.3-beta $ Wed May  2 20:36:54 +07 2018
 #           0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # =====================================================
+# mod for FreeBSD by bdacus01 3-2-2021
 #set -x
 
+OS=`uname`
+if [ ${OS} = "FreeBSD" ]; then
+#FreeBSD does not have src at this location.  Create pecl dir.
+mkdir -p /usr/local/pecl	
+    WORKDIR="/usr/local/pecl";
+else
+    WORKDIR="/usr/local/src";
+fi
 PWD=`pwd`;
-WORKDIR="/usr/local/src";
 PECL=$(ls -1 /usr/local/php*/bin/pecl /usr/local/bin/pecl 2>/dev/null | head -1);
 LANG=C;
 FILE="";
