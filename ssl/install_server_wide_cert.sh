@@ -4,13 +4,14 @@
 #  be used to do a quick installation of a SSL cert/key for server-wide usage
 #  i.e. SSL cert used by default (on hostname) in Apache/Nginx, Exim/Dovecot.
 # ============================================================================
-#  IMPORTANT: Written and tested on CentOS 6.x only
+#  IMPORTANT: Written and tested on CentOS 6.x, 7.x only
 # ============================================================================
 # Written by: Alex S Grebenschikov (support@porailx.com)
-#  Copyright: 2015, 2017 Alex S Grebenschikov
+#  Copyright: 2015, 2017, 2021 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
-#  Last modified: Thu Jun 29 09:36:58 +07 2017
-#  Version: 0.2 $ Thu Jun 29 09:36:58 +07 2017
+#  Last modified: Tue Apr 27 00:33:34 +07 2021
+#  Version: 0.3 $ Tue Apr 27 00:33:34 +07 2021
+#           0.2 $ Thu Jun 29 09:36:58 +07 2017
 #           0.1 $ Wed 28 Oct 2015 17:14:53 NOVT
 # ============================================================================
 #
@@ -140,7 +141,7 @@ do_cert_directadmin()
 do_print_copyright()
 {
     echo "==========================================================================";
-    echo " ${BOLD}Written by Alex S Grebenschikov (support@poralix.com), 2015, 2017${RESET}";
+    echo " ${BOLD}Written by Alex Grebenschikov (support@poralix.com), 2015,2017,2021${RESET}";
     echo "==========================================================================";
 }
  
@@ -161,7 +162,7 @@ do_print_usage()
     echo "";
     echo "         ============================================================================";
     echo "";
-    echo "          Copyright (c) 2015, 2017 Alex S Grebenschikov (support@poralix.com)";
+    echo "          Copyright (c) 2015,2017,2021 Alex S Grebenschikov (support@poralix.com)";
     echo "";
     exit 1;
 }
@@ -169,7 +170,7 @@ do_print_usage()
 do_validate_cert()
 {
     CCERT="$1";
-    ${OPENSSL} x509 -noout -modulus -in ${CCERT} >/dev/null 2>&1;
+    ${OPENSSL} x509 -noout -pubkey -in ${CCERT} >/dev/null 2>&1;
     RES=$?;
     echo "[INFO] Validating CERT ${BOLD}${CCERT}${RESET}";
     if [ "${RES}" -gt "0" ];
@@ -180,7 +181,7 @@ do_validate_cert()
     }
     else
     {
-        HCERT=`${OPENSSL} x509 -noout -modulus -in ${CCERT} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2`;
+        HCERT=$(${OPENSSL} x509 -noout -pubkey -in ${CCERT} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2);
         echo "${GREEN}[OK]${RESET} The cert md5 hash: ${BOLD}${HCERT}${RESET}";
     }
     fi;
@@ -189,7 +190,7 @@ do_validate_cert()
 do_validate_key()
 {
     CKEY="$1";
-    ${OPENSSL} rsa -noout -modulus -in ${CKEY} >/dev/null 2>&1;
+    ${OPENSSL} pkey -pubout -in ${CKEY} >/dev/null 2>&1;
     RES=$?;
     echo "[INFO] Validating CERT ${BOLD}${CKEY}${RESET}";
     if [ "${RES}" -gt "0" ];
@@ -200,7 +201,7 @@ do_validate_key()
     }
     else
     {
-        HKEY=`${OPENSSL} rsa -noout -modulus -in ${CKEY} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2`;
+        HKEY=$(${OPENSSL} pkey -pubout -in ${CKEY} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2);
         echo "${GREEN}[OK]${RESET} The key md5 hash: ${BOLD}${HKEY}${RESET}";
     }
     fi;
