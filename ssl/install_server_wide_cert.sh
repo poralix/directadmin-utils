@@ -9,8 +9,9 @@
 # Written by: Alex S Grebenschikov (support@porailx.com)
 #  Copyright: 2015, 2017, 2021 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
-#  Last modified: Tue Apr 27 00:33:34 +07 2021
-#  Version: 0.3 $ Tue Apr 27 00:33:34 +07 2021
+#  Last modified: Tue Apr 27 18:40:46 +07 2021
+#  Version: 0.4 $ Tue Apr 27 18:40:46 +07 2021
+#           0.3 $ Tue Apr 27 00:33:34 +07 2021
 #           0.2 $ Thu Jun 29 09:36:58 +07 2017
 #           0.1 $ Wed 28 Oct 2015 17:14:53 NOVT
 # ============================================================================
@@ -133,8 +134,20 @@ do_cert_directadmin()
     [ -f "${PCACERT}" ] && cp -v ${PCACERT} ${CACERTTO};
     chmod -v 600 ${CERTTO} ${KEYTO} ${CACERTTO};
     chown -v diradmin:diradmin ${CERTTO} ${KEYTO} ${CACERTTO};
-    killall -9 directadmin
+    killall -9 directadmin;
     do_restart directadmin;
+    echo;
+}
+
+do_cert_pureftpd()
+{
+    echo "${BOLD}Installing cert/key for PureFTPd${RESET}";
+    COMBO_CERT_TO="/etc/pure-ftpd.pem";
+    cat ${PCERT} ${PKEY} > ${COMBO_CERT_TO};
+    [ -f "${PCACERT}" ] && cat ${PCACERT} >> ${COMBO_CERT_TO};
+    chmod -v 600 ${COMBO_CERT_TO};
+    chown -v 0:0 ${COMBO_CERT_TO};
+    do_restart pure-ftpd;
     echo;
 }
  
@@ -313,5 +326,14 @@ else
     [ "$c" -eq "1" ] && do_cert_exim_dovecot;
 }
 fi;
- 
+
+# PureFTPd
+c=$(grep -c ^ftpd=pureftpd /usr/local/directadmin/custombuild/options.conf);
+if [ "${c}" -eq "1" ];
+then
+{
+    do_cert_pureftpd;
+}
+fi;
+
 exit 0;
