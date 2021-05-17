@@ -23,6 +23,10 @@ cd /usr/local/directadmin/scripts/custom
 - PATH_TO_KEY     - a full or relative path to a KEY you want to install
 - PATH_TO_CACERT  - a full or relative path to a CACERT you want to install
 
+# CACERT
+
+The cacerts file is a collection of trusted certificate authority (CA) certificates. They are Intermediate/chain certificates.
+
 # Author
 
 Alex S Grebenschikov
