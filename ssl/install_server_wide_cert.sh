@@ -10,7 +10,8 @@
 #  Copyright: 2015, 2017, 2021 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
 #  Last modified: Mon May 17 21:51:45 +07 2021
-#  Version: 0.5 $ Mon May 17 21:51:45 +07 2021
+#  Version: 0.6 $ Wed May 26 13:14:23 +07 2021
+#           0.5 $ Mon May 17 21:51:45 +07 2021
 #           0.4 $ Tue Apr 27 18:40:46 +07 2021
 #           0.3 $ Tue Apr 27 00:33:34 +07 2021
 #           0.2 $ Thu Jun 29 09:36:58 +07 2017
@@ -19,7 +20,14 @@
 #
  
 # A LIST OF SERVICES YOU WANT A CERT TO BE INSTALLED FOR
-SERVICES="directadmin apache nginx exim dovecot";
+SERVICES="";
+SERVICES="${SERVICES} directadmin";
+SERVICES="${SERVICES} apache";
+SERVICES="${SERVICES} nginx";
+SERVICES="${SERVICES} litespeed";
+SERVICES="${SERVICES} openlitespeed";
+SERVICES="${SERVICES} exim";
+SERVICES="${SERVICES} dovecot";
 
 # ============================================================================
 # DO NOT CHANGE ANYTHING BELLOW
@@ -31,22 +39,29 @@ GREEN="$(tput -Txterm setaf 2)";
 RESET="$(tput -Txterm sgr0)";
 OPENSSL='/usr/bin/openssl';
 
+die()
+{
+    echo "$1";
+    exit $2;
+}
+
 do_restart()
 {
     echo;
-    echo "${BOLD}Restarting service $1${RESET}";
     if [ -x "/bin/systemctl" ] || [ -x "/usr/bin/systemctl" ]; then
+        echo "${GREEN}[OK]${RESET} ${BOLD}Restarting service $1${RESET}";
         systemctl restart $1;
     elif [ -x "/etc/init.d/$1" ]; then
+        echo "${GREEN}[OK]${RESET} ${BOLD}Restarting service $1${RESET}";
         /etc/init.d/$1 restart;
     else
-        echo "You need to restart $1 manually in order to changes to take effect!";
+        echo "${RED}[WARNING]${RESET} You need to restart $1 manually in order to changes to take effect!";
     fi;
 }
 
 do_cert_exim_dovecot()
 {
-    echo "${BOLD}Installing cert/key for Exim and Dovecot${RESET}";
+    echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for Exim and Dovecot${RESET}";
     COMBCERTTO="/etc/exim.cert";
     KEYTO="/etc/exim.key";
     cp -v ${PCERT} ${COMBCERTTO};
@@ -63,9 +78,8 @@ do_cert_exim_dovecot()
     echo;
 }
 
-do_cert_apache()
+do_cert_httpd()
 {
-    echo "${BOLD}Installing cert/key for Apache${RESET}";
     CACERTTO="/etc/httpd/conf/ssl.crt/server.ca";
     CERTTO="/etc/httpd/conf/ssl.crt/server.crt";
     COMBCERTTO="/etc/httpd/conf/ssl.crt/server.crt.combined";
@@ -81,35 +95,92 @@ do_cert_apache()
     chmod -v 600  ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
     chown -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
     chgrp -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
-    do_restart httpd;
+}
+
+do_cert_openlitespeed()
+{
+    c=$(echo ${SERVICES} | grep -c "\ openlitespeed");
+    if [ "${c}" -eq "0" ]; then
+        echo "${RED}[WARNING]${RESET} ${BOLD}Skipping installation of cert/key for OpenLiteSpeed${RESET}";
+    else
+        echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for OpenLiteSpeed${RESET}";
+        CACERTTO="/usr/local/lsws/ssl.crt/server.ca";
+        CERTTO="/usr/local/lsws/ssl.crt/server.crt";
+        COMBCERTTO="/usr/local/lsws//ssl.crt/server.crt.combined";
+        KEYTO="/usr/local/lsws/ssl.key/server.key";
+        cp -v ${PCERT} ${CERTTO};
+        cp -v ${PCERT} ${COMBCERTTO};
+        cp -v ${PKEY}  ${KEYTO};
+        if [ -f "${PCACERT}" ]; then
+            cp -v ${PCACERT} ${CACERTTO};
+            echo "" >> ${COMBCERTTO};
+            cat ${PCACERT} >> ${COMBCERTTO};
+        fi;
+        chmod -v 600  ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
+        chown -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
+        chgrp -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
+        do_cert_httpd;
+        do_restart litespeed;
+    fi;
+    echo;
+}
+
+do_cert_litespeed()
+{
+    c=$(echo ${SERVICES} | grep -c "\ litespeed");
+    if [ "${c}" -eq "0" ]; then
+        echo "${RED}[WARNING]${RESET} ${BOLD}Skipping installation of cert/key for Litespeed${RESET}";
+    else
+        echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for Litespeed${RESET}";
+        do_cert_httpd;
+        do_restart litespeed;
+    fi;
+    echo;
+}
+
+do_cert_apache()
+{
+    c=$(echo ${SERVICES} | grep -c "\ apache");
+    if [ "${c}" -eq "0" ]; then
+        echo "${RED}[WARNING]${RESET} ${BOLD}Skipping installation of cert/key for Apache${RESET}";
+    else
+        echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for Apache${RESET}";
+        do_cert_httpd;
+        do_restart httpd;
+    fi;
     echo;
 }
 
 do_cert_nginx()
 {
-    echo "${BOLD}Installing cert/key for NGINX${RESET}";
-    CACERTTO="/etc/nginx/ssl.crt/server.ca";
-    CERTTO="/etc/nginx/ssl.crt/server.crt";
-    COMBCERTTO="/etc/nginx/ssl.crt/server.crt.combined";
-    KEYTO="/etc/nginx/ssl.key/server.key";
-    cp -v ${PCERT} ${CERTTO};
-    cp -v ${PCERT} ${COMBCERTTO};
-    cp -v ${PKEY}  ${KEYTO};
-    if [ -f "${PCACERT}" ]; then
-        cp -v ${PCACERT} ${CACERTTO};
-        echo "" >> ${COMBCERTTO};
-        cat ${PCACERT} >> ${COMBCERTTO};
+    c=$(echo ${SERVICES} | grep -c "\ apache");
+    if [ "${c}" -eq "0" ]; then
+        echo "${RED}[WARNING]${RESET} ${BOLD}Skipping installation of cert/key for NGINX${RESET}";
+    else
+        echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for NGINX${RESET}";
+        CACERTTO="/etc/nginx/ssl.crt/server.ca";
+        CERTTO="/etc/nginx/ssl.crt/server.crt";
+        COMBCERTTO="/etc/nginx/ssl.crt/server.crt.combined";
+        KEYTO="/etc/nginx/ssl.key/server.key";
+        cp -v ${PCERT} ${CERTTO};
+        cp -v ${PCERT} ${COMBCERTTO};
+        cp -v ${PKEY}  ${KEYTO};
+        if [ -f "${PCACERT}" ]; then
+            cp -v ${PCACERT} ${CACERTTO};
+            echo "" >> ${COMBCERTTO};
+            cat ${PCACERT} >> ${COMBCERTTO};
+        fi;
+        chmod -v 600  ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
+        chown -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
+        chgrp -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
+        do_restart nginx;
     fi;
-    chmod -v 600  ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
-    chown -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
-    chgrp -v root ${CERTTO} ${KEYTO} ${CACERTTO} ${COMBCERTTO};
-    do_restart nginx;
     echo;
 }
 
 do_cert_directadmin()
 {
-    echo "${BOLD}Installing cert/key for Directadmin${RESET}";
+    echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for Directadmin${RESET}";
     CERTTO="/usr/local/directadmin/conf/cacert.pem";
     KEYTO="/usr/local/directadmin/conf/cakey.pem";
     CACERTTO="/usr/local/directadmin/conf/carootcert.pem";
@@ -125,7 +196,7 @@ do_cert_directadmin()
 
 do_cert_pureftpd()
 {
-    echo "${BOLD}Installing cert/key for PureFTPd${RESET}";
+    echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for PureFTPd${RESET}";
     COMBO_CERT_TO="/etc/pure-ftpd.pem";
     cat ${PCERT} ${PKEY} > ${COMBO_CERT_TO};
     [ -f "${PCACERT}" ] && cat ${PCACERT} >> ${COMBO_CERT_TO};
@@ -177,6 +248,7 @@ do_validate_cert()
         HCERT=$(${OPENSSL} x509 -noout -pubkey -in ${CCERT} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2);
         echo "${GREEN}[OK]${RESET} The cert md5 hash: ${BOLD}${HCERT}${RESET}";
     fi;
+    echo;
 }
 
 do_validate_key()
@@ -192,15 +264,18 @@ do_validate_key()
         HKEY=$(${OPENSSL} pkey -pubout -in ${CKEY} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2);
         echo "${GREEN}[OK]${RESET} The key md5 hash: ${BOLD}${HKEY}${RESET}";
     fi;
+    echo;
 }
 
 # PRINT USAGE
-[ -z "$1" ] && do_print_usage;
-[ -z "$2" ] && do_print_usage;
+[ "$#" -lt "2" ] && do_print_usage;
 
 # SET PARAMS
 PCERT="$1";
 PKEY="$2";
+
+[ -d "/usr/local/directadmin/" ] || die "${RED}[ERROR]${RESET} DirectAdmin is not installed here. Terminating..." 1;
+[ -f "/usr/local/directadmin/custombuild/options.conf" ] || die "${RED}[ERROR]${RESET} CustomBuild is not installed here. Terminating..." 2;
 
 do_print_copyright;
 do_validate_cert "${PCERT}";
@@ -208,40 +283,47 @@ do_validate_key "${PKEY}";
 
 if [ "${HKEY}" == "${HCERT}" ]; then
     echo "${GREEN}[OK]${RESET} CERT and KEY match each other!";
+    echo;
 else
     echo "${RED}[ERROR]${RESET} CERT and KEY do not match each other!";
     exit 1;
 fi;
 
-if [ -n "$3" ]; then
-    if [ -f "$3" ]; then
-        PCACERT="$3";
-        echo "[INFO] You provided CACERT ${BOLD}${PCACERT}${RESET}";
-        do_validate_cert "${PCACERT}";
-    fi;
+if [ -n "$3" ] && [ -f "$3" ]; then
+    PCACERT="$3";
+    echo "[INFO] You provided CACERT ${BOLD}${PCACERT}${RESET}";
+    do_validate_cert "${PCACERT}";
 fi;
 
 # DIRECTADMIN
 c=$(echo ${SERVICES} | grep -c directadmin);
 [ "$c" -eq "1" ] && do_cert_directadmin;
 
-# APACHE
-c=$(echo ${SERVICES} | grep -c apache);
-[ "$c" -eq "1" ] && do_cert_apache;
+WEBSERVER=$(grep ^webserver= /usr/local/directadmin/custombuild/options.conf | cut -d\= -f2);
 
-# NGINX
-c=$(echo ${SERVICES} | grep -c apache);
-if [ "$c" -eq "1" ]; then
-    is_nginx=$(/usr/local/directadmin/directadmin c | grep ^nginx= | cut -d\= -f2)
-    is_nginx_proxy=$(/usr/local/directadmin/directadmin c | grep ^nginx_proxy= | cut -d\= -f2)
-    if [ "${is_nginx}" -eq "1" ] || [ "${is_nginx_proxy}" -eq "1" ]; then
-        echo "[INFO] NGINX is set in directadmin.conf";
+case "${WEBSERVER}" in
+    apache)
+        # APACHE
+        do_cert_apache;
+    ;;
+    nginx)
+        # NGINX
         do_cert_nginx;
-    else
-        echo "[INFO] NGINX is not set in directadmin.conf";
-        echo;
-    fi;
-fi;
+    ;;
+    nginx_apache)
+        # NGINX + APACHE
+        do_cert_apache;
+        do_cert_nginx;
+    ;;
+    litespeed)
+        # LITESPEED
+        do_cert_litespeed;
+    ;;
+    openlitespeed)
+        # OPENLITESPEED
+        do_cert_openlitespeed;
+    ;;
+esac;
 
 # EXIM
 c=$(echo ${SERVICES} | grep -c exim);
