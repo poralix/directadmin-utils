@@ -25,7 +25,7 @@ else
     WORKDIR="/usr/local/src"
 fi
 PWD=$(pwd)
-PECL=$(ls -1 /usr/local/php*/bin/pecl /usr/local/bin/pecl 2>/dev/null | head -1)
+PECL=$(find /usr/local/php*/bin/pecl /usr/local/bin/pecl 2>/dev/null | head -1)
 LANG=C
 FILE=""
 EXT=""
@@ -76,7 +76,7 @@ function do_update() {
             echo "${BN}Installing ${EXT} for ${PHPVER}${BF}"
             PHPDIR=$(dirname "${PHPIZE}")
             cd ${WORKDIR} || exit
-            rm -rfv "${tmpdir}"/*
+            rm -rfv "${tmpdir:?}"/*
             tar -zxvf "${FILE}" --directory="${tmpdir}"
             DIR=$(ls -1d "${tmpdir}"/"${EXT}"* | head -1)
             if [ -d "${DIR}" ]; then
@@ -132,7 +132,9 @@ do_update_ini() {
         }
     else
         {
-            for INI_FILE in $(ls -1 "${INI_DIR}"/*.ini); do
+            for INI_FILE in "${INI_DIR}"/*.ini
+            do
+            [[ -e "$INI_FILE" ]] || break
                 echo "${BN}[ERROR] Could not find ${EXT_DIR}/${EXT}.so. Removing extension from ${INI_FILE}${BF}"
                 grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}##" "${INI_FILE}"
             done
@@ -170,7 +172,7 @@ do_remove() {
         }
     else
         {
-            PHP_VERSIONS=$(ls -1 /usr/local/php*/bin/php | sort -n | grep -E -o '(5|7)[0-9]+' | xargs)
+            PHP_VERSIONS=$(find /usr/local/php*/bin/php | sort -n | grep -E -o '(5|7)[0-9]+' | xargs)
         }
     fi
 
@@ -199,7 +201,7 @@ do_remove() {
 do_install() {
     verify_php_version
 
-    cd ${WORKDIR}
+    cd ${WORKDIR} || exit
 
     if [ -x "${PECL}" ]; then
         {
@@ -261,7 +263,7 @@ do_status() {
         }
     else
         {
-            PHP_VERSIONS=$(ls -1 /usr/local/php*/bin/php | sort -n | grep -E -o '(5|7)[0-9]+' | xargs)
+            PHP_VERSIONS=$(find /usr/local/php*/bin/php | sort -n | grep -E -o '(5|7)[0-9]+' | xargs)
         }
     fi
 
@@ -303,17 +305,17 @@ BETA=""
 [ -n "${CMD}" ] || do_usage
 [ -n "${EXT}" ] || do_usage
 
-for ARG in $@; do
+for ARG in "$@"; do
     case "${ARG}" in
     --beta)
         BETA=1
         ;;
     --php=*)
-        PVN=$(echo "${ARG}" | cut -d\= -f2 | grep -E -o '^(5|7)[0-9]+')
+        PVN=$(echo "${ARG}" | cut -d = -f2 | grep -E -o '^(5|7)[0-9]+')
         [ -z "${PVN}" ] && do_usage
         ;;
     --ver=*)
-        EXT_VERSION=$(echo "${ARG}" | cut -d\= -f2)
+        EXT_VERSION=$(echo "${ARG}" | cut -d = -f2)
         [ -z "${EXT_VERSION}" ] && do_usage
         ;;
     esac
