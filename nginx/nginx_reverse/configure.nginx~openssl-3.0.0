@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# Customized by Poralix.com to build NGINX with support of TLSv1.3
+# Last modified: Fri Nov  5 11:26:03 +07 2021
+#
+
+# CentOS:
+# yum -y install perl-IPC-Cmd
+
+OPENSSL_VER="3.0.0";
+OPENSSL_NAME="openssl_tls_1_3.tar.gz";
+WITH_OPENSSL=" --with-openssl";
+
+if [ -f "/root/.custombuild_nginx_openssl" ];
+then
+    OPENSSL_VER=$(head -1 "/root/.custombuild_nginx_openssl");
+    echo "[INFO] Found OpenSSL version ${OPENSSL_VER} in /root/.custombuild_nginx_openssl";
+elif [ -f "/usr/local/directadmin/custombuild/custom_nginx_openssl.txt" ];
+then
+    OPENSSL_VER=$(head -1 "/usr/local/directadmin/custombuild/custom_nginx_openssl.txt");
+    echo "[INFO] Found OpenSSL version ${OPENSSL_VER} in /usr/local/directadmin/custombuild/custom_nginx_openssl.txt";
+fi;
+
+if [ -n "${OPENSSL_VER}" ];
+then
+    OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz";
+    wget "${OPENSSL_URL}" -O "${OPENSSL_NAME}"; RETVAL=$?;
+fi;
+
+if [ -f "${OPENSSL_NAME}" ] && [ "${RETVAL}" == "0" ];
+then
+    tar -zxvf ${OPENSSL_NAME};
+    PWD=$(pwd);
+    OPENSSL_DIR=$(find ${PWD} -type d -name openssl-${OPENSSL_VER}\*);
+    [ -d "${OPENSSL_DIR}" ] && WITH_OPENSSL=" --with-openssl=${OPENSSL_DIR} --with-openssl-opt=enable-tls1_3 ";
+fi;
+
+./configure \
+    "--user=nginx" \
+    "--group=nginx" \
+    "--prefix=/usr" \
+    "--sbin-path=/usr/sbin" \
+    "--conf-path=/etc/nginx/nginx.conf" \
+    "--pid-path=/var/run/nginx.pid" \
+    "--http-log-path=/var/log/nginx/access_log" \
+    "--error-log-path=/var/log/nginx/error_log" \
+    "--without-mail_imap_module" \
+    "--without-mail_smtp_module" \
+    "--with-http_ssl_module" \
+    "--with-http_realip_module" \
+    "--with-http_stub_status_module" \
+    "--with-http_gzip_static_module" \
+    "--with-http_dav_module" \
+    "--with-http_v2_module" \
+    "--with-http_image_filter_module" \
+    ${WITH_OPENSSL} \
+    "--add-module=../ngx_cache_purge" \
+    "--with-cc-opt='-D FD_SETSIZE=32768'"
