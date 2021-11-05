@@ -1,18 +1,19 @@
 #!/bin/sh
 #
 # Customized by Poralix.com to build NGINX with support of TLSv1.3
-# Last modified: Wed Jan  9 00:29:38 +07 2019
+# Last modified: Fri Nov  5 13:57:40 +07 2021
 #
 
-OPENSSL_VER="1.1.1";
-OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}-latest.tar.gz";
+OPENSSL_VER="1.1.1l";
+OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz";
 
 OPENSSL_NAME="openssl_tls_1_3.tar.gz";
 wget ${OPENSSL_URL} -O ${OPENSSL_NAME};
 
 [ -f "${OPENSSL_NAME}" ] && tar -zxvf ${OPENSSL_NAME};
-PWD=`pwd`;
-OPENSSL_DIR=`find ${PWD} -type d -name openssl-${OPENSSL_VER}\*`;
+PWD=$(pwd);
+OPENSSL_DIR=$(find ${PWD} -type d -name openssl-${OPENSSL_VER}\*);
+
 ./configure \
         "--user=nginx" \
         "--group=nginx" \
@@ -30,6 +31,8 @@ OPENSSL_DIR=`find ${PWD} -type d -name openssl-${OPENSSL_VER}\*`;
         "--with-http_gzip_static_module" \
         "--with-http_dav_module" \
         "--with-http_v2_module" \
+        "--with-http_image_filter_module" \
         "--with-openssl=${OPENSSL_DIR}" \
         "--with-openssl-opt=enable-tls1_3" \
+        "--add-module=../ngx_cache_purge" \
         "--with-cc-opt='-D FD_SETSIZE=32768'"
