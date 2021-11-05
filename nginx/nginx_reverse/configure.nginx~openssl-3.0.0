@@ -7,6 +7,9 @@
 # CentOS:
 # yum -y install perl-IPC-Cmd
 
+# Debian
+# apt -y install libgd-dev
+
 OPENSSL_VER="3.0.0";
 OPENSSL_NAME="openssl_tls_1_3.tar.gz";
 WITH_OPENSSL=" --with-openssl";
