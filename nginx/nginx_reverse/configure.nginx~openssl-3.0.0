@@ -1,18 +1,22 @@
 #!/bin/sh
 #
 # Customized by Poralix.com to build NGINX with support of TLSv1.3
-# Last modified: Fri Nov  5 11:26:03 +07 2021
+# Last modified: Tue Nov 16 10:10:06 +07 2021
 #
 
 # CentOS:
-# yum -y install perl-IPC-Cmd
+# yum -y install perl-IPC-Cmd gd-devel
 
 # Debian
 # apt -y install libgd-dev
 
+# Dependences
+#
+# - libgd-dev/gd-devel is required for http_image_filter_module
+
 OPENSSL_VER="3.0.0";
 OPENSSL_NAME="openssl_tls_1_3.tar.gz";
-WITH_OPENSSL=" --with-openssl";
+WITH_OPENSSL="";
 
 if [ -f "/root/.custombuild_nginx_openssl" ];
 then
