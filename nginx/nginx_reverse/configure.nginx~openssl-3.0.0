@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Customized by Poralix.com to build NGINX with support of TLSv1.3
-# Last modified: Tue Nov 16 10:10:06 +07 2021
+# Last modified: Thu Dec 30 12:01:29 +07 2021
 #
 
 # CentOS:
@@ -14,7 +14,12 @@
 #
 # - libgd-dev/gd-devel is required for http_image_filter_module
 
-OPENSSL_VER="3.0.0";
+# OpenSSL versions:
+#
+# 2021-Dec-14 16:28:09     openssl-1.1.1m.tar.gz
+# 2021-Dec-14 16:28:09     openssl-3.0.1.tar.gz
+
+OPENSSL_VER="3.0.1";
 OPENSSL_NAME="openssl_tls_1_3.tar.gz";
 WITH_OPENSSL="";
 
