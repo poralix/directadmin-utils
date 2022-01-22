@@ -5,9 +5,9 @@
 
 # Script transip_mail_domains.sh:
 
-For DirectAdmin servers which use TransIP Mail Service as a SMTP relay
-Exim should be configured to use TransIP Mail Service first
-The script DOES NOT change Exim's configuration. You should do it first
+For DirectAdmin servers which use TransIP Mail Service as a SMTP relay.
+Exim should be configured to use TransIP Mail Service first.
+The script DOES NOT change Exim's configuration. You should do it first.
 The script DOES NOT change DNS records. You should do it first.
 
 Installation:
