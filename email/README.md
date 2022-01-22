@@ -27,7 +27,7 @@ cd /usr/local/directadmin/scripts/custom/
 
 Options:
 
-``
+```
     --run            - Run the tests
 
     --test-spf       - Enable SPF test
