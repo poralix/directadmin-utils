@@ -23,8 +23,28 @@ Usage:
 ```
 cd /usr/local/directadmin/scripts/custom/
 ./transip_mail_domains.sh --help
+```
 
-./transip_mail_domains.sh --run
+Options:
+
+``
+    --run            - Run the tests
+
+    --test-spf       - Enable SPF test
+    --test-dkim      - Enable DKIM test
+    --test-all       - Enable SPF/DKIM tests
+
+    --key=<KEY>      - If specified should contain a value for x-transip-mail-auth.
+                       This is the value which can be found in TransIP dashboard.
+                       TransIP requires this to be added for every domain.
+
+                       If omitted the script won't verify the value of the record
+                       in DNS. Any value will give a positive result.
+
+    --debug          - Print DEBUG output
+    --verbose        - Do a verbose output
+
+    --dry-run        - Do selected tests without writing changes to a file
 ```
 
 # Author:
