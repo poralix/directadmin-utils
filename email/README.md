@@ -5,6 +5,8 @@
 
 # Script transip_mail_domains.sh:
 
+The script runs DNS tests for all hosted domains and adds a domain into a list of domains emails from which should be sent over TransIP Mail Service.
+
 For DirectAdmin servers which use TransIP Mail Service as a SMTP relay.
 Exim should be configured to use TransIP Mail Service first.
 The script DOES NOT change Exim's configuration. You should do it first.
