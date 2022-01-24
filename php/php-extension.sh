@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.9-beta $ Sat Apr  3 11:19:27 PDT 2021
+# versions: 0.10-beta $ Mon Jan 24 17:06:22 +07 2022
+#           0.9-beta $ Sat Apr  3 11:19:27 PDT 2021
 #           0.8-beta $ Thu Mar 21 17:54:46 +07 2019
 #           0.7-beta $ Tue Dec 18 13:54:09 +07 2018
 #           0.6-beta $ Wed Dec 12 11:23:45 +07 2018
@@ -29,32 +30,37 @@ BF="`tput -Txterm sgr0`"
 function do_usage()
 {
     echo "
-# ===================================================== #
-# A script to install/update/remove pecl extension      #
-# for all installed by CustomBuild 2.x PHP versions     #
-# Written by Alex Grebenschikov(support@poralix.com)    #
-# Version: 0.9-beta $ Sat Apr  3 11:19:27 PDT 2021      #
-# ===================================================== #
+# ============================================================ #
+#     A script to install/update/remove PECL extension         #
+#     for all installed by CustomBuild 2.x PHP versions        #
+# ============================================================ #
+#     IMPORTANT: DirectAdmin servers are only supported        #
+# ============================================================ #
+#     Written by Alex Grebenschikov(support@poralix.com)       #
+#     Version: 0.10-beta $ Mon Jan 24 17:06:22 +07 2022        #
+# ============================================================ #
 
 Usage:
 
-$0 <command> <pecl_extension> [<options>]
+    $0 <command> <pecl_extension> [<options>]
 
-        Supported commands:
+Supported commands:
 
-            install   - to install extension
-            remove    - to remove extension
-            status    - show status of an extension
+    install   - to install PECL extension
+    remove    - to remove PECL extension
+    status    - show status of PECL extension
 
-        options:
+Supported options:
 
-            --ver=VER - to install a specified version of an extension
+    --ver=VER - to install a specified version of an 
+                extension
 
-            --beta    - to install a beta version of an extension
+    --beta    - to install a beta version of an extension
 
-            --php=VER - to install extension for one PHP version
-                        digits only (only one version at a time):
-                        52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80, etc
+    --php=VER - to install extension for one PHP version
+                digits only (only one version at a time):
+                52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80,
+                81, etc
 
 ";
 
@@ -104,6 +110,7 @@ function do_update()
                 echo "${BN}[ERROR] Configure of ${EXT} failed${BF}";
             }
             fi;
+            cd ${WORKDIR};
         }
         fi;
     }
@@ -178,7 +185,7 @@ do_remove()
     }
     else
     {
-        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8)[0-9]+' | xargs`;
+        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8|9)[0-9]+' | xargs`;
     }
     fi;
 
@@ -200,6 +207,7 @@ do_remove()
         }
         fi;
         do_update_ini ${PHPVER} >/dev/null 2>&1;
+        do_restart_webserver ${PHPVER};
         cat ${INI_FILE};
     }
     done;
@@ -245,6 +253,7 @@ do_install()
                 PHPVER=$(echo ${PHPIZE} | grep -o "[0-9]*");
                 do_update ${PHPIZE};
                 do_update_ini ${PHPVER};
+                do_restart_webserver ${PHPVER};
                 echo; sleep 1;
             }
             done;
@@ -253,6 +262,7 @@ do_install()
         {
             do_update /usr/local/${PHPVER}/bin/phpize;
             do_update_ini ${PHPVER};
+            do_restart_webserver ${PHPVER};
         }
         fi;
     }
@@ -275,7 +285,7 @@ do_status()
     }
     else
     {
-        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8)[0-9]+' | xargs`;
+        PHP_VERSIONS=`ls -1 /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8|9)[0-9]+' | xargs`;
     }
     fi;
 
@@ -308,6 +318,64 @@ do_status()
         fi;
     }
     done;
+}
+
+do_restart_webserver()
+{
+    DOTVER=$(echo "${1}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+    PHP_INSTANCE=$(grep ^php[1-4]_release=${DOTVER} /usr/local/directadmin/custombuild/options.conf | cut -d_ -f1);
+    if [ -n "${PHP_INSTANCE}" ]; then
+    {
+        PHP_MODE=$(grep "^${PHP_INSTANCE}_mode=" /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
+        if [ "${PHP_MODE}" == "php-fpm" ]; then
+        {
+            echo "${BN}[INFO]${BF} Going to restart PHP-FPM ${DOTVER}!";
+            do_restart_service "php-fpm${1}";
+        }
+        elif [ "${PHP_MODE}" == "lsphp" ]; then
+        {
+            killall lsphp;
+        }
+        else
+        {
+            echo "${BN}[INFO]${BF} Going to restart a webserver for PHP ${DOTVER} (${PHP_MODE})!";
+            WEBSERVER=$(grep ^webserver= /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
+
+            case "${WEBSERVER}" in
+                nginx_apache|apache)
+                    do_restart_service "httpd";
+                ;;
+                openlitespeed|litespeed)
+                    do_restart_service "litespeed";
+                ;;
+                nginx)
+                    do_restart_service "nginx";
+                ;;
+            esac;
+        }
+        fi;
+    }
+    else
+    {
+        echo "${BN}[Warning]${BF} The PHP version ${BN}${DOTVER}${BF} isn't managed by DirectAdmin!";
+    }
+    fi;
+    echo '';
+}
+
+do_restart_service()
+{
+    echo "${BN}[INFO]${BF} Restarting ${1}!";
+
+    if [ -e "/bin/systemctl" ]; then
+    {
+        /bin/systemctl restart "${1}.service";
+    }
+    else
+    {
+        /sbin/service "${1}" restart;
+    }
+    fi;
 }
 
 CMD="${1}";
