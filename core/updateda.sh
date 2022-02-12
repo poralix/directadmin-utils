@@ -6,6 +6,7 @@
 #######################################################################################
 #                                                                                     #
 #            Versions:                                                                #
+#                      0.8-beta (Sat Feb 12 20:39:09 +07 2022)                        #
 #                      0.7-beta (Fri Oct  1 10:23:57 +07 2021)                        #
 #                      0.6-beta (Mon Sep 30 02:35:39 EDT 2019)                        #
 #                      0.5-beta (Thu Jun 27 10:19:12 +07 2019)                        #
@@ -56,8 +57,9 @@ usage()
     ${BN}Usage${BF} $0 <cmd> [<options>]
 
         ${BN}Commands${BF}:
-            stable  - Download and install Directadmin update from stable channel
+            alfa    - Download and install Directadmin update from alfa channel
             beta    - Download and install Directadmin update from beta channel
+            stable  - Download and install Directadmin update from stable channel
             version - Show installed version of Directadmin
             list_os - Show supported OS and their versions
             save_os - Save os_override option in directadmin.conf with value --os=
@@ -75,6 +77,7 @@ usage()
 
         ${BN}Example of usage${BF}:
 
+            $0 alfa
             $0 beta
             $0 stable
 
@@ -186,6 +189,13 @@ doStableUpdate()
 {
     CHANNEL="";
     RELEASE="stable";
+    doProcess;
+}
+
+doAlfaUpdate()
+{
+    CHANNEL="&channel=alfa";
+    RELEASE="alfa";
     doProcess;
 }
 
@@ -345,12 +355,16 @@ done;
 SHOW_OS_OVERRIDE_WARNING=0;
 
 case "$1" in
-    stable)
-        doStableUpdate;
+    alfa)
+        doAlfaUpdate;
         SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     beta)
         doBetaUpdate;
+        SHOW_OS_OVERRIDE_WARNING=1;
+    ;;
+    stable)
+        doStableUpdate;
         SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     version)
