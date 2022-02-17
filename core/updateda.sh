@@ -6,6 +6,7 @@
 #######################################################################################
 #                                                                                     #
 #            Versions:                                                                #
+#                      0.9-beta (Thu Feb 17 13:05:52 +07 2022)                        #
 #                      0.8-beta (Sat Feb 12 20:39:09 +07 2022)                        #
 #                      0.7-beta (Fri Oct  1 10:23:57 +07 2021)                        #
 #                      0.6-beta (Mon Sep 30 02:35:39 EDT 2019)                        #
@@ -357,14 +358,17 @@ SHOW_OS_OVERRIDE_WARNING=0;
 case "$1" in
     alfa)
         doAlfaUpdate;
+        /usr/local/directadmin/directadmin set update_channel alfa restart;
         SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     beta)
         doBetaUpdate;
+        /usr/local/directadmin/directadmin set update_channel beta restart;
         SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     stable)
         doStableUpdate;
+        /usr/local/directadmin/directadmin set update_channel current restart;
         SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     version)
@@ -389,4 +393,3 @@ esac;
 [ "${SHOW_OS_OVERRIDE_WARNING}" == "1" ] && os_override_warning;
 
 exit 0;
-
