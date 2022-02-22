@@ -6,6 +6,7 @@
 #######################################################################################
 #                                                                                     #
 #            Versions:                                                                #
+#                      0.10-beta (Tue Feb 22 12:52:29 +07 2022)                       #
 #                      0.9-beta (Thu Feb 17 13:05:52 +07 2022)                        #
 #                      0.8-beta (Sat Feb 12 20:39:09 +07 2022)                        #
 #                      0.7-beta (Fri Oct  1 10:23:57 +07 2021)                        #
@@ -21,7 +22,7 @@
 ##                                                                                    #
 ##   MIT License                                                                      #
 ##                                                                                    #
-##   Copyright (c) 2016 Alex Grebenschikov, Poralix, www.poralix.com                  #
+##   Copyright (c) 2016-2021 Alex Grebenschikov, Poralix, www.poralix.com             #
 ##                                                                                    #
 ##   Permission is hereby granted, free of charge, to any person obtaining a copy     #
 ##   of this software and associated documentation files (the "Software"), to deal    #
@@ -58,7 +59,7 @@ usage()
     ${BN}Usage${BF} $0 <cmd> [<options>]
 
         ${BN}Commands${BF}:
-            alfa    - Download and install Directadmin update from alfa channel
+            alpha   - Download and install Directadmin update from alpha channel
             beta    - Download and install Directadmin update from beta channel
             stable  - Download and install Directadmin update from stable channel
             version - Show installed version of Directadmin
@@ -78,7 +79,7 @@ usage()
 
         ${BN}Example of usage${BF}:
 
-            $0 alfa
+            $0 alpha
             $0 beta
             $0 stable
 
@@ -193,10 +194,10 @@ doStableUpdate()
     doProcess;
 }
 
-doAlfaUpdate()
+doAlphaUpdate()
 {
-    CHANNEL="&channel=alfa";
-    RELEASE="alfa";
+    CHANNEL="&channel=alpha";
+    RELEASE="alpha";
     doProcess;
 }
 
@@ -356,9 +357,9 @@ done;
 SHOW_OS_OVERRIDE_WARNING=0;
 
 case "$1" in
-    alfa)
-        doAlfaUpdate;
-        /usr/local/directadmin/directadmin set update_channel alfa restart;
+    alpha)
+        doAlphaUpdate;
+        /usr/local/directadmin/directadmin set update_channel alpha restart;
         SHOW_OS_OVERRIDE_WARNING=1;
     ;;
     beta)
