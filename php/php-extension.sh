@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.10-beta $ Mon Jan 24 17:06:22 +07 2022
+# versions: 0.11-beta $ Thu Feb 24 22:49:14 +07 2022
+#           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
 #           0.9-beta $ Sat Apr  3 11:19:27 PDT 2021
 #           0.8-beta $ Thu Mar 21 17:54:46 +07 2019
 #           0.7-beta $ Tue Dec 18 13:54:09 +07 2018
@@ -247,7 +248,7 @@ do_install()
         if [ -z "${PHPVER}" ];
         then
         {
-            for PHPIZE in $(ls -1 /usr/local/php*/bin/phpize /usr/local/bin/phpize);
+            for PHPIZE in $(ls -1 /usr/local/php*/bin/phpize);
             do
             {
                 PHPVER=$(echo ${PHPIZE} | grep -o "[0-9]*");
@@ -330,7 +331,7 @@ do_restart_webserver()
         if [ "${PHP_MODE}" == "php-fpm" ]; then
         {
             echo "${BN}[INFO]${BF} Going to restart PHP-FPM ${DOTVER}!";
-            do_restart_service "php-fpm${1}";
+            do_restart_service "php-fpm${DOTVER//./}";
         }
         elif [ "${PHP_MODE}" == "lsphp" ]; then
         {
