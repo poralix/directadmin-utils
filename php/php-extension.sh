@@ -38,7 +38,7 @@ function do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.10-beta $ Mon Jan 24 17:06:22 +07 2022        #
+#     Version: 0.11-beta $ Thu Feb 24 22:49:14 +07 2022        #
 # ============================================================ #
 
 Usage:
