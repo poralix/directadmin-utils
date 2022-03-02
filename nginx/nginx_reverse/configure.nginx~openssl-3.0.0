@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Customized by Poralix.com to build NGINX with support of TLSv1.3
-# Last modified: Thu Dec 30 12:01:29 +07 2021
+# Last modified: Wed Mar  2 15:14:10 +07 2022
 #
 
 # CentOS:
@@ -33,18 +33,22 @@ then
     echo "[INFO] Found OpenSSL version ${OPENSSL_VER} in /usr/local/directadmin/custombuild/custom_nginx_openssl.txt";
 fi;
 
+
+WGET_CMD="/usr/bin/wget";
+grep -q -c "CentOS release 6" /etc/redhat-release && WGET_CMD="${WGET_CMD} --no-check-certificate";
+
 if [ -n "${OPENSSL_VER}" ];
 then
     OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz";
-    wget "${OPENSSL_URL}" -O "${OPENSSL_NAME}"; RETVAL=$?;
+    "${WGET_CMD}" "${OPENSSL_URL}" -O "${OPENSSL_NAME}"; RETVAL=$?;
 fi;
 
-if [ -f "${OPENSSL_NAME}" ] && [ "${RETVAL}" == "0" ];
+if [ -f "${OPENSSL_NAME}" ] && [ "${RETVAL}" = "0" ];
 then
     tar -zxvf ${OPENSSL_NAME};
     PWD=$(pwd);
-    OPENSSL_DIR=$(find ${PWD} -type d -name openssl-${OPENSSL_VER}\*);
-    [ -d "${OPENSSL_DIR}" ] && WITH_OPENSSL=" --with-openssl=${OPENSSL_DIR} --with-openssl-opt=enable-tls1_3 ";
+    OPENSSL_DIR=$(find "${PWD}" -type d -name "openssl-${OPENSSL_VER}"\*);
+    [ -d "${OPENSSL_DIR}" ] && WITH_OPENSSL="--with-openssl=${OPENSSL_DIR} --with-openssl-opt=enable-tls1_3";
 fi;
 
 ./configure \
@@ -64,7 +68,6 @@ fi;
     "--with-http_gzip_static_module" \
     "--with-http_dav_module" \
     "--with-http_v2_module" \
-    "--with-http_image_filter_module" \
-    ${WITH_OPENSSL} \
+    "--with-http_image_filter_module" ${WITH_OPENSSL} \
     "--add-module=../ngx_cache_purge" \
     "--with-cc-opt='-D FD_SETSIZE=32768'"
