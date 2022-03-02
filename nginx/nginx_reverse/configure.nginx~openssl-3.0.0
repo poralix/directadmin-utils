@@ -35,12 +35,13 @@ fi;
 
 
 WGET_CMD="/usr/bin/wget";
-grep -q -c "CentOS release 6" /etc/redhat-release && WGET_CMD="${WGET_CMD} --no-check-certificate";
+WGET_OPTIONS="";
+grep -q -c "CentOS release 6" /etc/redhat-release && WGET_OPTIONS="${WGET_OPTIONS} --no-check-certificate";
 
 if [ -n "${OPENSSL_VER}" ];
 then
     OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz";
-    "${WGET_CMD}" "${OPENSSL_URL}" -O "${OPENSSL_NAME}"; RETVAL=$?;
+    "${WGET_CMD}" ${WGET_OPTIONS} "${OPENSSL_URL}" -O "${OPENSSL_NAME}"; RETVAL=$?;
 fi;
 
 if [ -f "${OPENSSL_NAME}" ] && [ "${RETVAL}" = "0" ];
@@ -71,3 +72,4 @@ fi;
     "--with-http_image_filter_module" ${WITH_OPENSSL} \
     "--add-module=../ngx_cache_purge" \
     "--with-cc-opt='-D FD_SETSIZE=32768'"
+
