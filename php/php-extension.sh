@@ -5,7 +5,8 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.11-beta $ Thu Feb 24 22:49:14 +07 2022
+# versions: 0.12-beta $ Mon May  9 18:51:05 +07 2022
+#           0.11-beta $ Thu Feb 24 22:49:14 +07 2022
 #           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
 #           0.9-beta $ Sat Apr  3 11:19:27 PDT 2021
 #           0.8-beta $ Thu Mar 21 17:54:46 +07 2019
@@ -38,7 +39,7 @@ function do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.11-beta $ Thu Feb 24 22:49:14 +07 2022        #
+#     Version: 0.12-beta $ Mon May  9 18:51:05 +07 2022        #
 # ============================================================ #
 
 Usage:
@@ -128,6 +129,7 @@ do_update_ini()
 {
     EXT_DIR=$(/usr/local/${1}/bin/php -i 2>&1 | grep ^extension_dir | awk '{print $3}');
     INI_DIR="/usr/local/${1}/lib/php.conf.d";
+    [ -d "${INI_DIR}" ] || mkdir -p ${INI_DIR};
     INI_FILE="${INI_DIR}/99-custom.ini";
     [ -f "${INI_FILE}" ] || INI_FILE="/usr/local/${1}/lib/php.conf.d/90-custom.ini";
     ROW="extension=${EXT}.so";
