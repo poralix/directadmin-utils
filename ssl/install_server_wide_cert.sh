@@ -7,10 +7,11 @@
 #  IMPORTANT: Written and tested on CentOS 6.x, 7.x only
 # ============================================================================
 # Written by: Alex S Grebenschikov (support@porailx.com)
-#  Copyright: 2015, 2017, 2021 Alex S Grebenschikov
+#  Copyright: 2015-2022 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
-#  Last modified: Mon May 17 21:51:45 +07 2021
-#  Version: 0.6 $ Wed May 26 13:14:23 +07 2021
+#  Last modified: Wed Aug 31 12:58:29 +07 2022
+#  Version: 0.7 $ Wed Aug 31 12:58:29 +07 2022
+#           0.6 $ Wed May 26 13:14:23 +07 2021
 #           0.5 $ Mon May 17 21:51:45 +07 2021
 #           0.4 $ Tue Apr 27 18:40:46 +07 2021
 #           0.3 $ Tue Apr 27 00:33:34 +07 2021
@@ -209,7 +210,7 @@ do_cert_pureftpd()
 do_print_copyright()
 {
     echo "==========================================================================";
-    echo " ${BOLD}Written by Alex Grebenschikov (support@poralix.com), 2015,2017,2021${RESET}";
+    echo " ${BOLD}Written by Alex Grebenschikov (support@poralix.com), 2015-2022${RESET}";
     echo "==========================================================================";
 }
 
@@ -230,7 +231,7 @@ do_print_usage()
     echo "";
     echo "         ============================================================================";
     echo "";
-    echo "          Copyright (c) 2015,2017,2021 Alex S Grebenschikov (support@poralix.com)";
+    echo "          Copyright (c) 2015-2022 Alex S Grebenschikov (support@poralix.com)";
     echo "";
     exit 1;
 }
@@ -245,7 +246,7 @@ do_validate_cert()
         echo "${RED}[ERROR]${RESET} File ${CCERT} is not a valid CERT";
         exit 1;
     else
-        HCERT=$(${OPENSSL} x509 -noout -pubkey -in ${CCERT} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2);
+        HCERT=$(${OPENSSL} x509 -noout -pubkey -in ${CCERT} 2>&1 | ${OPENSSL} md5 | awk '{print $2}');
         echo "${GREEN}[OK]${RESET} The cert md5 hash: ${BOLD}${HCERT}${RESET}";
     fi;
     echo;
@@ -261,7 +262,7 @@ do_validate_key()
         echo "${RED}[ERROR]${RESET} File ${CKEY} is not a valid KEY";
         exit 1;
     else
-        HKEY=$(${OPENSSL} pkey -pubout -in ${CKEY} 2>&1 | ${OPENSSL} md5 | cut -d\  -f2);
+        HKEY=$(${OPENSSL} pkey -pubout -in ${CKEY} 2>&1 | ${OPENSSL} md5 | awk '{print $2}');
         echo "${GREEN}[OK]${RESET} The key md5 hash: ${BOLD}${HKEY}${RESET}";
     fi;
     echo;
@@ -299,7 +300,7 @@ fi;
 c=$(echo ${SERVICES} | grep -c directadmin);
 [ "$c" -eq "1" ] && do_cert_directadmin;
 
-WEBSERVER=$(grep ^webserver= /usr/local/directadmin/custombuild/options.conf | cut -d\= -f2);
+WEBSERVER=$(grep ^webserver= /usr/local/directadmin/custombuild/options.conf | awk -F= '{print $2}');
 
 case "${WEBSERVER}" in
     apache)
