@@ -6,7 +6,7 @@
 # ============================================================================
 #  IMPORTANT: Written and tested on CentOS 6.x, 7.x only
 # ============================================================================
-# Written by: Alex S Grebenschikov (support@porailx.com)
+# Written by: Alex S Grebenschikov (support@poralix.com)
 #  Copyright: 2015-2022 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
 #  Last modified: Mon Oct 10 18:24:44 +07 2022
