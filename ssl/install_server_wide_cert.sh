@@ -9,8 +9,9 @@
 # Written by: Alex S Grebenschikov (support@porailx.com)
 #  Copyright: 2015-2022 Alex S Grebenschikov
 #  Created at: Wed 28 Oct 2015 17:14:32 NOVT
-#  Last modified: Wed Aug 31 12:58:29 +07 2022
-#  Version: 0.7 $ Wed Aug 31 12:58:29 +07 2022
+#  Last modified: Mon Oct 10 18:24:44 +07 2022
+#  Version: 0.8 $ Mon Oct 10 18:24:44 +07 2022
+#           0.7 $ Wed Aug 31 12:58:29 +07 2022
 #           0.6 $ Wed May 26 13:14:23 +07 2021
 #           0.5 $ Mon May 17 21:51:45 +07 2021
 #           0.4 $ Tue Apr 27 18:40:46 +07 2021
@@ -19,7 +20,7 @@
 #           0.1 $ Wed 28 Oct 2015 17:14:53 NOVT
 # ============================================================================
 #
- 
+
 # A LIST OF SERVICES YOU WANT A CERT TO BE INSTALLED FOR
 SERVICES="";
 SERVICES="${SERVICES} directadmin";
@@ -184,10 +185,13 @@ do_cert_directadmin()
     echo "${GREEN}[OK]${RESET} ${BOLD}Installing cert/key for Directadmin${RESET}";
     CERTTO="/usr/local/directadmin/conf/cacert.pem";
     KEYTO="/usr/local/directadmin/conf/cakey.pem";
-    CACERTTO="/usr/local/directadmin/conf/carootcert.pem";
-    cp -v ${PCERT} ${CERTTO};
-    cp -v ${PKEY}  ${KEYTO};
-    [ -f "${PCACERT}" ] && cp -v ${PCACERT} ${CACERTTO};
+    CACERTTO="";
+    cp -v "${PCERT}" "${CERTTO}";
+    cp -v "${PKEY}" "${KEYTO}";
+    if [ -f "${PCACERT}" ]; then
+        CACERTTO="/usr/local/directadmin/conf/carootcert.pem";
+        cp -v "${PCACERT}" "${CACERTTO}";
+    fi;
     chmod -v 600 ${CERTTO} ${KEYTO} ${CACERTTO};
     chown -v diradmin:diradmin ${CERTTO} ${KEYTO} ${CACERTTO};
     killall -9 directadmin;
