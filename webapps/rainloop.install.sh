@@ -17,8 +17,10 @@
 #############################################################################
 # set -x
 
-URL="https://www.rainloop.net/repository/webmail/rainloop-community-latest.zip";
-SOURCE="rainloop-community-latest.zip"
+#URL="https://www.rainloop.net/repository/webmail/rainloop-community-latest.zip";
+#SOURCE="rainloop-community-latest.zip"
+URL="https://www.rainloop.net/repository/webmail/rainloop-latest.zip";
+SOURCE="rainloop-latest.zip"
 MYSQL_DB="da_rainloop";
 MYSQL_USER="da_rainloop";
 MYSQL_HOST="localhost";
