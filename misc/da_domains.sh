@@ -4,8 +4,8 @@
 #----------------------------------------------------------------------
 # Author: Alex Grebenschikov, www.poralix.com
 # Created at: Mon Oct 31 13:21:06 +07 2022
-# Last modified: Mon Oct 31 13:21:06 +07 2022
-# Version: 0.1 $ Mon Oct 31 13:21:06 +07 2022
+# Last modified: Mon Nov 21 11:44:46 +07 2022
+# Version: 0.2 $ Mon Nov 21 11:44:46 +07 2022
 #----------------------------------------------------------------------
 # Copyright (c) 2022 Alex Grebenschikov, www.poralix.com
 #----------------------------------------------------------------------
@@ -48,22 +48,22 @@ domains()
 
 nameservers()
 {
-    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short NS "${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
+    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short NS "@${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
 }
 
 ip4()
 {
-    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short A "${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
+    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short A "@${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
 }
 
 ip6()
 {
-    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short AAAA "${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
+    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short AAAA "@${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
 }
 
 mx()
 {
-    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short MX "${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
+    for DOM in $(awk -F: {'print $1'} /etc/virtual/domainowners | sort | uniq); do echo - $DOM: $(dig +short MX "@${DNS_RESOLVER}" "${DOM}" | sort | xargs); done
 }
 
 run_cmd()
