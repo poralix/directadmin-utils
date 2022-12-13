@@ -4,6 +4,9 @@
 # by Poralix
 #################################
 
+echo "Evolution skin is now shipped with DirectAdmin. Do not use the script!";
+exit 1;
+
 update_skin()
 {
     DIR="/usr/local/directadmin/data/skins/evolution";
