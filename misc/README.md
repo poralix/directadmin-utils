@@ -29,7 +29,7 @@ Options:
     --domains  - just list domains without DNS queries
     --ns       - list domains with their nameservers
     --mx       - list domains with their MX records
-    --ipv4     - list domains with their IPv4
-    --ipv6     - list domains with their IPv6
+    --ip4     - list domains with their IPv4
+    --ip6     - list domains with their IPv6
 ```
 
