@@ -9,6 +9,7 @@ mkdir -p /usr/local/directadmin/custombuild/custom/hooks/letsencrypt/post/
 cd /usr/local/directadmin/custombuild/custom/hooks/letsencrypt/post/
 wget -O poralix_patch_chain.sh https://raw.githubusercontent.com/poralix/directadmin-utils/master/letsencrypt/poralix_patch_chain.sh
 chmod 750 poralix_patch_chain.sh
+/usr/local/directadmin/custombuild/build letsencrypt
 ```
 
 
