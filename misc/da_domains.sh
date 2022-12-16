@@ -4,8 +4,8 @@
 #----------------------------------------------------------------------
 # Author: Alex Grebenschikov, www.poralix.com
 # Created at: Mon Oct 31 13:21:06 +07 2022
-# Last modified: Mon Nov 21 11:44:46 +07 2022
-# Version: 0.2 $ Mon Nov 21 11:44:46 +07 2022
+# Last modified: Fri Dec 16 17:27:30 +07 2022
+# Version: 0.2.1 $ Mon Nov 21 11:44:46 +07 2022
 #----------------------------------------------------------------------
 # Copyright (c) 2022 Alex Grebenschikov, www.poralix.com
 #----------------------------------------------------------------------
@@ -35,8 +35,8 @@ Options:
     --domains  - just list domains without DNS queries
     --ns       - list domains with their nameservers
     --mx       - list domains with their MX records
-    --ipv4     - list domains with their IPv4
-    --ipv6     - list domains with their IPv6
+    --ip4      - list domains with their IPv4
+    --ip6      - list domains with their IPv6
 ";
     exit 0;
 }
