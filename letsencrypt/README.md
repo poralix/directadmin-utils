@@ -1,3 +1,17 @@
+# A script to force Let's Encrypt to use DST Root CA X3
+
+Here is a patch for Let's Encrypt script from DirectAdmin to force it to use "DST Root CA X3" instead of "ISRG Root X1" when issuing SSL certificates.
+
+For installation run as root:
+
+```
+mkdir -p /usr/local/directadmin/custombuild/custom/hooks/letsencrypt/post/
+cd /usr/local/directadmin/custombuild/custom/hooks/letsencrypt/post/
+wget -O poralix_patch_chain.sh https://raw.githubusercontent.com/poralix/directadmin-utils/master/letsencrypt/poralix_patch_chain.sh
+chmod 750 poralix_patch_chain.sh
+```
+
+
 # let's encrypt patch for VERSION=1.0.18 letsencrypt.sh
 
 Having 10-20-30... domains (and more) in ca.san_config is a challenge to get them verified at once. This patch will give you a re-try on challenge verification.

@@ -18,6 +18,7 @@
 #
 # COPY/MOVE FILE TO THE CREATED FOLDER AND RUN:
 #
+# wget -O poralix_patch_chain.sh https://raw.githubusercontent.com/poralix/directadmin-utils/master/letsencrypt/poralix_patch_chain.sh
 # chmod 750 poralix_patch_chain.sh
 #
 
