@@ -6,7 +6,7 @@
 #                                                                                     #
 #######################################################################################
 #                                                                                     #
-#            Version: 0.4.0 (Tue Jan  8 23:16:51 +07 2019)                            #
+#            Version: 0.4.1 (Fri Dec 16 13:08:32 +07 2022)                            #
 #            Written by: Alex S Grebenschikov (zEitEr)                                #
 #            Site: www.poralix.com  E-mail: support@poralix.com                       #
 #                                                                                     #
@@ -15,7 +15,7 @@
 ##                                                                                    #
 ##   MIT License                                                                      #
 ##                                                                                    #
-##   Copyright (c) 2016 Alex S Grebenschikov (www.poralix.com)                        #
+##   Copyright (c) 2016-2022 Alex S Grebenschikov (www.poralix.com)                   #
 ##                                                                                    #
 ##   Permission is hereby granted, free of charge, to any person obtaining a copy     #
 ##   of this software and associated documentation files (the "Software"), to deal    #
@@ -45,7 +45,7 @@ function usage()
     echo "#  A script to install either a mainline or stable version of NGINX    #";
     echo "#            for Directadmin Custombuild2                              #";
     echo "#  A version of NGINX mainline will be installed by default            #";
-    echo "#            Version: 0.4.0 (Tue Jan  8 23:16:51 +07 2019)             #";
+    echo "#            Version: 0.4.1 (Fri Dec 16 13:08:32 +07 2022)             #";
     echo "#            Written by: Alex S Grebenschikov (zEitEr)                 #";
     echo "#                                                                      #";
     echo "########################################################################";
@@ -127,7 +127,17 @@ function install_nginx()
 {
     cd /usr/local/directadmin/custombuild;
     ./build update;
+
+    # Custombuild ignores downloaded packages, and tries to download them again
+    # so we need to patch it to use already downloaded package
+    perl -pi -e 's|safeDownloadWithMove "\$\{CWD\}/nginx-|#safeDownloadWithMove "\$\{CWD\}/nginx-|' /usr/local/directadmin/custombuild/build;
+    perl -pi -e 's|safeDownloadWithMove "\$\{WORKDIR\}/nginx-|#safeDownloadWithMove "\$\{WORKDIR\}/nginx-|' /usr/local/directadmin/custombuild/build;
+
     ./build nginx;
+
+    # Bring custombuild script back to the original view after we completed nginx installation
+    perl -pi -e 's|#safeDownloadWithMove "\$\{CWD\}/nginx-|safeDownloadWithMove "\$\{CWD\}/nginx-|' /usr/local/directadmin/custombuild/build;
+    perl -pi -e 's|#safeDownloadWithMove "\$\{WORKDIR\}/nginx-|safeDownloadWithMove "\$\{WORKDIR\}/nginx-|' /usr/local/directadmin/custombuild/build;
 }
 
 function set_cron()
