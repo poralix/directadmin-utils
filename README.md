@@ -49,13 +49,3 @@ wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/core/upd
 chmod 755 updateda.sh
 ./updateda.sh beta
 ```
-
-# Update Evolution skin in Directadmin
-
-```
-cd /root/
-wget https://raw.githubusercontent.com/poralix/directadmin-utils/master/core/update_evolution.sh -O update_evolution.sh
-chmod 755 update_evolution.sh
-./update_evolution.sh
-```
-
