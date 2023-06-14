@@ -196,32 +196,32 @@ php -r "$(tr -d "\n" <<EOF
     echo \$oDomainProvider->Save(\$oDomain) ? '[OK] Rainloop - IMAP config save.' : '[ERROR] Cannot save IMAP config';
     echo "\\n";
 
+    \$plugin_packages = \$oActions->DoAdminPackagesList();
+    \$plugin_installed = \$oActions->Plugins()->InstalledPlugins();
 
-    \$plugin_nstalled = \$oActions->Plugins()->InstalledPlugins();
-
-    if(!in_array_recursive('directadmin-change-password',\$plugin_nstalled)){
-        \$oActions->SetActionParams([
-            'Id' => 'directadmin-change-password',
-            'Type' => 'plugin',
-            'File' => 'plugins/directadmin-change-password-1.1.zip'
-        ],'AdminPackageInstall');
-        echo \$oActions->DoAdminPackageInstall() ? '[OK] Rainloop - Install Directadmin-change-password completed' : '[ERROR] Cannot install Directadmin-change-password ';
-        echo "\\n";
-    }
-
-    if(!in_array_recursive('add-x-originating-ip-header',\$plugin_nstalled)){
-        \$oActions->SetActionParams([
-            'Id' => 'add-x-originating-ip-header',
-            'Type' => 'plugin',
-            'File' => 'plugins/add-x-originating-ip-header-1.2.zip'
-        ],'AdminPackageInstall');
-        echo \$oActions->DoAdminPackageInstall() ? '[OK] Rainloop - Install add-x-originating-ip-header completed' : '[ERROR] Cannot install add-x-originating-ip-header ';
-        echo "\\n";
+    \$plugin_installation = array('directadmin-change-password','add-x-originating-ip-header');
+    foreach( \$plugin_installation as \$install_plugin_id )
+    {
+        if(!in_array_recursive(\$install_plugin_id,\$plugin_installed)){
+            \$plugin = searchArrayValueByKey(\$install_plugin_id,'id',\$plugin_packages);
+            \$oActions->SetActionParams([
+                'Id' => \$plugin['id'],
+                'Type' => 'plugin',
+                'File' => \$plugin['file']
+            ],'AdminPackageInstall');
+            echo \$oActions->DoAdminPackageInstall() ? "[OK] Rainloop - Plugin [{\$plugin['id']}] v{\$plugin['version']} installed" : "[ERROR] Cannot install [{\$plugin['id']}]";
+            echo "\\n";
+        }
     }
 
     \$oConfig->set('plugins','enable',true);
-    \$oConfig->set('plugins','enabled_list','add-x-originating-ip-header,directadmin-change-password');
+    \$oConfig->set('plugins','enabled_list', implode(',',\$plugin_installation));
     \$oConfig->Save();
+
+    function searchArrayValueByKey(\$search, \$key, \$array){
+      \$find = array_filter(\$array, function (\$data) use (\$key, \$search) { return \$data[\$key] == \$search;});
+      \$find = reset(\$find); return \$find;
+    }
 
     function in_array_recursive(\$needle, \$haystack) {
         \$it = new RecursiveIteratorIterator(new RecursiveArrayIterator(\$haystack));
