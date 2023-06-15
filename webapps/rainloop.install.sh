@@ -168,6 +168,7 @@ php -d error_reporting=32757 -r "$(tr -d "\n" <<EOF
 
     echo "[OK] Rainloop - Config database [$MYSQL_DB, $MYSQL_USER, $MYSQL_PASSWORD] to rainloop\n";
     \$oConfig->set('contacts','enable',true);
+    \$oConfig->set('contacts','type','mysql');
     \$oConfig->set('contacts','pdo_dsn', 'mysql:host=localhost;port=3306;dbname=$MYSQL_DB');
     \$oConfig->set('contacts','pdo_user','$MYSQL_USER');
     \$oConfig->set('contacts','pdo_password','$MYSQL_PASSWORD');
