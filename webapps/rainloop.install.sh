@@ -195,10 +195,10 @@ php -d error_reporting=32757 -r "$(tr -d "\n" <<EOF
     echo \$oDomainProvider->Save(\$oDomain) ? '[OK] Rainloop - IMAP config save.' : '[ERROR] Cannot save IMAP config';
     echo "\\n";
 
-    \$plugin_packages = (\$plugin_packages = \$oActions->DoAdminPackagesList()) ?  \$plugin_packages['Result']['List'] : [];
+    \$plugin_packages = (\$plugin_packages = \$oActions->DoAdminPackagesList()) ? \$plugin_packages['Result']['List'] : [];
     \$plugin_installed = \$oActions->Plugins()->InstalledPlugins();
-    \$plugin_installation = array('directadmin-change-password','add-x-originating-ip-header');
 
+    \$plugin_installation = array('directadmin-change-password','add-x-originating-ip-header');
     foreach( \$plugin_installation as \$plugin_installation_id )
     {
         if(!in_array_recursive(\$plugin_installation_id,\$plugin_installed)){
@@ -212,6 +212,9 @@ php -d error_reporting=32757 -r "$(tr -d "\n" <<EOF
             ],'AdminPackageInstall');
             echo \$oActions->DoAdminPackageInstall() ? "[OK] Rainloop - Plugin [{\$plugin['id']}] v{\$plugin['version']} installed" : "[ERROR] Cannot install [{\$plugin['id']}]";
             echo "\\n";
+        }
+        else {
+            echo "[OK] Rainloop - Plugin [{\$plugin_installation_id}] enabled\\n";
         }
     }
 
@@ -240,12 +243,10 @@ echo "  Default username/password for admin access:";
 echo "  - admin";
 echo "  - $RAINLOOP_ADMIN_PASSWORD";
 
-
 if ! grep -qs "error_reporting" /var/www/html/rainloop/index.php; then
     echo_green "[OK] Rainloop - Disable php error_reporting()"
     sed -i "2 i error_reporting(0);" /var/www/html/rainloop/index.php
 fi
 
-
-echo ""
+echo "";
 die "[OK] Rainloop installation completed!" 0;
