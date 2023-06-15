@@ -159,8 +159,7 @@ fi
 
 echo "";
 echo_green "[OK] Rainloop - Starting configuration"
-php -r "$(tr -d "\n" <<EOF
-    error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+php -d error_reporting=32757 -r "$(tr -d "\n" <<EOF
     \$_ENV['RAINLOOP_INCLUDE_AS_API'] = true;
     include '/var/www/html/rainloop/index.php';
 
@@ -196,14 +195,16 @@ php -r "$(tr -d "\n" <<EOF
     echo \$oDomainProvider->Save(\$oDomain) ? '[OK] Rainloop - IMAP config save.' : '[ERROR] Cannot save IMAP config';
     echo "\\n";
 
-    \$plugin_packages = \$oActions->DoAdminPackagesList();
+    \$plugin_packages = (\$plugin_packages = \$oActions->DoAdminPackagesList()) ?  \$plugin_packages['Result']['List'] : [];
     \$plugin_installed = \$oActions->Plugins()->InstalledPlugins();
-
     \$plugin_installation = array('directadmin-change-password','add-x-originating-ip-header');
-    foreach( \$plugin_installation as \$install_plugin_id )
+
+    foreach( \$plugin_installation as \$plugin_installation_id )
     {
-        if(!in_array_recursive(\$install_plugin_id,\$plugin_installed)){
-            \$plugin = searchArrayValueByKey(\$install_plugin_id,'id',\$plugin_packages);
+        if(!in_array_recursive(\$plugin_installation_id,\$plugin_installed)){
+            \$plugin = getArrayBySubArrayKey(\$plugin_packages,'id',\$plugin_installation_id);
+            if(!\$plugin) continue;
+
             \$oActions->SetActionParams([
                 'Id' => \$plugin['id'],
                 'Type' => 'plugin',
@@ -218,9 +219,10 @@ php -r "$(tr -d "\n" <<EOF
     \$oConfig->set('plugins','enabled_list', implode(',',\$plugin_installation));
     \$oConfig->Save();
 
-    function searchArrayValueByKey(\$search, \$key, \$array){
-      \$find = array_filter(\$array, function (\$data) use (\$key, \$search) { return \$data[\$key] == \$search;});
-      \$find = reset(\$find); return \$find;
+    function getArrayBySubArrayKey(\$array, \$subArrayKey, \$subArrayValue) {
+        \$subArray = array_column(\$array, null, \$subArrayKey);
+        if (isset(\$subArray[\$subArrayValue])) { return \$subArray[\$subArrayValue]; }
+        return null;
     }
 
     function in_array_recursive(\$needle, \$haystack) {
@@ -239,5 +241,11 @@ echo "  - admin";
 echo "  - $RAINLOOP_ADMIN_PASSWORD";
 
 
-echo "";
+if ! grep -qs "error_reporting" /var/www/html/rainloop/index.php; then
+    echo_green "[OK] Rainloop - Disable php error_reporting()"
+    sed -i "2 i error_reporting(0);" /var/www/html/rainloop/index.php
+fi
+
+
+echo ""
 die "[OK] Rainloop installation completed!" 0;
