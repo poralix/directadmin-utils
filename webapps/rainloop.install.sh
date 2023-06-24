@@ -58,7 +58,7 @@ genhtaccess()
         echo "[OK] Creating ${HTAF} file to block access to the data folder over HTTP/HTTPS (Apache and NGINX/Apache only)...";
         touch "${HTAF}";
 
-        webapps:webapps "${HTAF}";
+        chown webapps:webapps "${HTAF}";
         echo "Deny from all" > "${HTAF}";
         echo "<IfModule mod_autoindex.c>" >> "${HTAF}";
         echo "	Options -Indexes" >> "${HTAF}";
