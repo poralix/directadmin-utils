@@ -184,6 +184,9 @@ php -d error_reporting=32757 -r "$(tr -d "\n" <<EOF
     echo \$oActions->DoAdminLogin() ? '[OK] Rainloop - Admin Logined.' : '[ERROR] Admin cannot login';
     echo "\\n";
 
+    echo  \$oActions -> DoAdminContactsTest() ? '[OK] Rainloop - Import Database ' : '[ERROR] Cannot Import Database.';
+    echo "\\n";
+
     /*app/libraries/RainLoop/Model/Domain.php*/
     \$oDomain = \RainLoop\Model\Domain::NewInstance(
         '*',  /*name*/
