@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Customized by Poralix.com to build NGINX with support of TLSv1.3
-# Last modified: Wed Mar  2 15:14:10 +07 2022
+# Last modified: Tue Sep 17 12:51:44 +07 2024
 #
 
 # CentOS:
@@ -16,10 +16,12 @@
 
 # OpenSSL versions:
 #
-# 2021-Dec-14 16:28:09     openssl-1.1.1m.tar.gz
-# 2021-Dec-14 16:28:09     openssl-3.0.1.tar.gz
+# openssl-3.3.2.tar.gz	17652kB	03 Sep 2024 13:58
+# openssl-3.2.3.tar.gz	17346kB	03 Sep 2024 13:59
+# openssl-3.1.7.tar.gz	15317kB	03 Sep 2024 13:59
+# openssl-3.0.15.tar.gz	14959kB	03 Sep 2024 14:02
 
-OPENSSL_VER="3.0.1";
+OPENSSL_VER="3.0.15";
 OPENSSL_NAME="openssl_tls_1_3.tar.gz";
 WITH_OPENSSL="";
 
@@ -40,7 +42,8 @@ grep -q -c "CentOS release 6" /etc/redhat-release && WGET_OPTIONS="${WGET_OPTION
 
 if [ -n "${OPENSSL_VER}" ];
 then
-    OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz";
+    #OPENSSL_URL="https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz";
+    OPENSSL_URL="https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VER}/openssl-${OPENSSL_VER}.tar.gz";
     "${WGET_CMD}" ${WGET_OPTIONS} "${OPENSSL_URL}" -O "${OPENSSL_NAME}"; RETVAL=$?;
 fi;
 
@@ -70,6 +73,5 @@ fi;
     "--with-http_dav_module" \
     "--with-http_v2_module" \
     "--with-http_image_filter_module" ${WITH_OPENSSL} \
-    "--add-module=../ngx_cache_purge" \
+    "--add-module=static_modules/ngx_cache_purge" \
     "--with-cc-opt='-D FD_SETSIZE=32768'"
-
