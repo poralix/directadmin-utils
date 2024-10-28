@@ -117,7 +117,7 @@ Supported commands:
     remove         - to remove PECL extension
     status         - show a status of PECL extension for a PHP version
     version        - show a PECL extension version installed
-    update-script  - update this script from GitHub
+    selfupdate     - update this script from GitHub
 
 Supported options:
 
@@ -478,7 +478,6 @@ PVN="";
 BETA="";
 
 [ -n "${CMD}" ] || do_usage;
-[ -n "${EXT}" ] || do_usage;
 
 for ARG in "$@";
 do
@@ -504,21 +503,25 @@ fi;
 
 case "${CMD}" in
     install)
+        [ -n "${EXT}" ] || do_usage;
         do_install;
     ;;
     remove)
+        [ -n "${EXT}" ] || do_usage;
         BETA=0;
         do_remove;
     ;;
     status)
+        [ -n "${EXT}" ] || do_usage;
         BETA=0;
         do_status;
     ;;
     version)
+        [ -n "${EXT}" ] || do_usage;
         BETA=0;
         do_status | grep -i 'version';
     ;;
-    update-script)
+    selfupdate)
         do_update_script;
     ;;
     *)
