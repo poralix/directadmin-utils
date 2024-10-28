@@ -5,7 +5,7 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.13-beta $ Mon Oct 28 15:55:09 +07 2024
+# versions: 0.13-beta $ Mon Oct 28 12:06:28 CET 2024
 #           0.12-beta $ Mon May  9 18:51:05 +07 2022
 #           0.11-beta $ Thu Feb 24 22:49:14 +07 2022
 #           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
@@ -57,36 +57,34 @@ verify_php_version()
 
 find_extension_version()
 {
-    if [ -z "${EXT_VERSION}" ];
-    then
-    {
-        case "${PHPVER}" in
-            52|53|54|55|56)
-                case "${EXT}" in
-                    redis)
-                        EXT_VERSION_LEGACY="3.1.6";
-                    ;;
-                    *)
-                        EXT_VERSION_LEGACY="";
-                    ;;
-                esac;
-            ;;
-            70|71|72|73)
-                case "${EXT}" in
-                    redis)
-                        EXT_VERSION_LEGACY="5.3.7";
-                    ;;
-                    *)
-                        EXT_VERSION_LEGACY="";
-                    ;;
-                esac;
-            ;;
-            *)
-                EXT_VERSION_LEGACY="";
-            ;;
-        esac;
-    }
-    fi;
+    case "${PHPVER}" in
+        52|53|54|55|56)
+            case "${EXT}" in
+                igbinary)
+                    EXT_VERSION_LEGACY="2.0.8";
+                ;;
+                redis)
+                    EXT_VERSION_LEGACY="3.1.6";
+                ;;
+                *)
+                    EXT_VERSION_LEGACY="";
+                ;;
+            esac;
+        ;;
+        70|71|72|73)
+            case "${EXT}" in
+                redis)
+                    EXT_VERSION_LEGACY="5.3.7";
+                ;;
+                *)
+                    EXT_VERSION_LEGACY="";
+                ;;
+            esac;
+        ;;
+        *)
+            EXT_VERSION_LEGACY="";
+        ;;
+    esac;
     test -n "${EXT_VERSION_LEGACY}" && echo "${BN}Using legacy version=${EXT_VERSION_LEGACY} for extension=${EXT} for PHP=${PHPVER}${BF}";
     test -z "${EXT_VERSION_LEGACY}" && echo "${BN}Using default version for extension=${EXT} for PHP=${PHPVER}${BF}";
 }
@@ -101,7 +99,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.13-beta $ Mon Oct 28 15:55:09 +07 2024        #
+#     Version: 0.13-beta $ Mon Oct 28 12:06:28 CET 2024        #
 # ============================================================ #
 
 Usage:
@@ -226,15 +224,7 @@ do_update_ini()
     [ -d "${INI_DIR}" ] || mkdir -p "${INI_DIR}";
     INI_FILE="${INI_DIR}/99-custom.ini";
     [ -f "${INI_FILE}" ] || INI_FILE="/usr/local/${1}/lib/php.conf.d/90-custom.ini";
-
-    case "${EXT}" in
-        xdebug)
-            ROW="zend_extension=${EXT}.so";
-        ;;
-        *)
-            ROW="extension=${EXT}.so";
-        ;;
-    esac;
+    ROW="extension=${EXT}.so";
 
     if [ -f "${EXT_DIR}/${EXT}.so" ];
     then
@@ -248,9 +238,8 @@ do_update_ini()
         while read -r INI_FILE
         do
             echo "${BN}[ERROR] Could not find ${EXT_DIR}/${EXT}.so. Removing extension from ${INI_FILE}${BF}";
-            grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}\n##" "${INI_FILE}";
-            grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}##" "${INI_FILE}";
-        done < <(find ${INI_DIR}/*.ini);
+            grep -m1 -q "^${ROW}" "${INI_FILE}" &&  perl -pi -e  "s#^${ROW}##" "${INI_FILE}";
+        done < <(find "${INI_DIR}/*.ini");
     }
     fi;
 }
@@ -287,7 +276,7 @@ do_remove()
         fi;
         do_update_ini "${PHPVER}" >/dev/null 2>&1;
         do_restart_webserver "${PHPVER}";
-        test -f "${INI_FILE}" && cat "${INI_FILE}";
+        cat "${INI_FILE}";
     }
     done;
 }
