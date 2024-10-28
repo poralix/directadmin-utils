@@ -5,7 +5,7 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.14-beta $ Mon Oct 28 12:06:28 CET 2024
+# versions: 0.15-beta $ Mon Oct 28 12:23:07 CET 2024
 #           0.12-beta $ Mon May  9 18:51:05 +07 2022
 #           0.11-beta $ Thu Feb 24 22:49:14 +07 2022
 #           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
@@ -104,7 +104,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.14-beta $ Mon Oct 28 12:06:28 CET 2024        #
+#     Version: 0.15-beta $ Mon Oct 28 12:23:07 CET 2024        #
 # ============================================================ #
 
 Usage:
@@ -113,10 +113,11 @@ Usage:
 
 Supported commands:
 
-    install   - to install PECL extension
-    remove    - to remove PECL extension
-    status    - show a status of PECL extension for a PHP version
-    version   - show a PECL extension version installed
+    install        - to install PECL extension
+    remove         - to remove PECL extension
+    status         - show a status of PECL extension for a PHP version
+    version        - show a PECL extension version installed
+    update-script  - update this script from GitHub
 
 Supported options:
 
@@ -445,6 +446,32 @@ do_restart_service()
     fi;
 }
 
+do_update_script()
+{
+    echo "${BN}[INFO]${BF} Updating the script $0 from the official repository!";
+    echo "${BN}[INFO]${BF} HOME: https://github.com/poralix/directadmin-utils/!";
+    TMP_FILE=$(mktemp);
+    if [ -f "${TMP_FILE}" ];
+    then
+        curl -Ss "https://raw.githubusercontent.com/poralix/directadmin-utils/refs/heads/master/php/php-extension.sh" --output "${TMP_FILE}";
+        if [ "$?" == "0" ];
+        then
+            cat "${TMP_FILE}" > "${SCRIPT}";
+            chmod 750 "${SCRIPT}";
+            echo "${BN}[INFO]${BF} Script updated OK!";
+            rm -f "${TMP_FILE}";
+            exit 0;
+        else
+            echo "${BN}[ERROR]${BF} Failed to update the script!";
+        fi;
+        rm -f "${TMP_FILE}";
+    else
+        echo "${BN}[ERROR]${BF} Failed to update the script!";
+    fi;
+    exit 1;
+}
+
+SCRIPT="${0}";
 CMD="${1}";
 EXT="${2}";
 PVN="";
@@ -491,11 +518,13 @@ case "${CMD}" in
         BETA=0;
         do_status | grep -i 'version';
     ;;
+    update-script)
+        do_update_script;
+    ;;
     *)
         BETA=0;
         do_usage;
     ;;
 esac;
-
 
 exit 0;
