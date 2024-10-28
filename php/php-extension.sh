@@ -5,7 +5,7 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.13-beta $ Mon Oct 28 13:33:27 +07 2024
+# versions: 0.13-beta $ Mon Oct 28 15:55:09 +07 2024
 #           0.12-beta $ Mon May  9 18:51:05 +07 2022
 #           0.11-beta $ Thu Feb 24 22:49:14 +07 2022
 #           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
@@ -101,7 +101,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.13-beta $ Mon Oct 28 13:33:27 +07 2024        #
+#     Version: 0.13-beta $ Mon Oct 28 15:55:09 +07 2024        #
 # ============================================================ #
 
 Usage:
@@ -117,7 +117,7 @@ Supported commands:
 
 Supported options:
 
-    --ver=VER - to install a specified version of an 
+    --ver=VER - to install a specified version of an
                 extension
 
     --beta    - to install a beta version of an extension
@@ -226,7 +226,15 @@ do_update_ini()
     [ -d "${INI_DIR}" ] || mkdir -p "${INI_DIR}";
     INI_FILE="${INI_DIR}/99-custom.ini";
     [ -f "${INI_FILE}" ] || INI_FILE="/usr/local/${1}/lib/php.conf.d/90-custom.ini";
-    ROW="extension=${EXT}.so";
+
+    case "${EXT}" in
+        xdebug)
+            ROW="zend_extension=${EXT}.so";
+        ;;
+        *)
+            ROW="extension=${EXT}.so";
+        ;;
+    esac;
 
     if [ -f "${EXT_DIR}/${EXT}.so" ];
     then
@@ -240,8 +248,9 @@ do_update_ini()
         while read -r INI_FILE
         do
             echo "${BN}[ERROR] Could not find ${EXT_DIR}/${EXT}.so. Removing extension from ${INI_FILE}${BF}";
-            grep -m1 -q "^${ROW}" "${INI_FILE}" &&  perl -pi -e  "s#^${ROW}##" "${INI_FILE}";
-        done < <(find "${INI_DIR}/*.ini");
+            grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}\n##" "${INI_FILE}";
+            grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}##" "${INI_FILE}";
+        done < <(find ${INI_DIR}/*.ini);
     }
     fi;
 }
@@ -278,7 +287,7 @@ do_remove()
         fi;
         do_update_ini "${PHPVER}" >/dev/null 2>&1;
         do_restart_webserver "${PHPVER}";
-        cat "${INI_FILE}";
+        test -f "${INI_FILE}" && cat "${INI_FILE}";
     }
     done;
 }
