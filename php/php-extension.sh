@@ -6,7 +6,7 @@
 #  Written by Alex Grebenschikov (support@poralix.com)
 #
 # ======================================================
-#  Version: 0.16.0-beta $ Thu Oct 31 15:59:10 CET 2024
+#  Version: 0.16.2-beta $ Thu Oct 31 13:00:55 AST 2024
 #  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # ======================================================
 #
@@ -164,7 +164,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.16.0-beta $ Thu Oct 31 15:59:10 CET 2024      #
+#     Version: 0.16.2-beta $ Thu Oct 31 13:00:55 AST 2024      #
 # ============================================================ #
 
 Usage:
@@ -398,6 +398,8 @@ do_remove()
                 echo "${BN}[Warning] The extension ${EXT} for PHP ${loc_php_dotver} not found! Nothing to disable...${BF}";
             }
             fi;
+
+            do_update_ini "${loc_php_version}" "${EXT}" >/dev/null 2>&1;
         }
         else
         {
@@ -412,10 +414,11 @@ do_remove()
                 echo "${BN}[Warning] The extension ${EXT} for PHP ${loc_php_dotver} not found! Nothing to disable...${BF}";
             }
             fi;
+
+            do_update_ini "${loc_php_version}" >/dev/null 2>&1;
         }
         fi;
 
-        do_update_ini "${loc_php_version}" >/dev/null 2>&1;
         do_restart_webserver "${loc_php_version}";
     }
     done;
