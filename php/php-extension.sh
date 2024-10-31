@@ -117,8 +117,6 @@ find_extension_version()
 
 do_install_sourceguardian()
 {
-    SOURCEGUARDIAN_DIR="/usr/local/sourceguardian";
-
     if [ "${SOURCEGUARDIAN_INSTALLED}" == "1" ];
     then
         echo "${BN}[OK] Already installed sourceguardian loaders${BF}";
@@ -511,20 +509,9 @@ do_status()
             if [ -f "${loc_extension_file}" ];
             then
             {
-                echo "${BN}[OK] The extension ${EXT} for PHP ${loc_php_dotver} found! Removing it...${BF}";
-            }
-            else
-            {
-                echo "${BN}[Warning] The extension ${EXT} for PHP ${loc_php_dotver} not found! Nothing to disable...${BF}";
-            }
-            fi;
-        }
-        else
-        {
-            if [ -f "${loc_extension_file}" ];
-            then
-            {
-                IS_ENABLED=$("/usr/local/php${loc_php_version}/bin/php" -m | grep -m1 "^${EXT}$");
+                echo "${BN}[OK] The extension file ${loc_extension_file} for PHP ${loc_php_dotver} found!${BF}";
+
+                IS_ENABLED=$("/usr/local/php${loc_php_version}/bin/php" -m | grep -m1 -i "^${EXT}$");
 
                 if [ -n "${IS_ENABLED}" ]; then
                 {
@@ -535,12 +522,47 @@ do_status()
                         echo "[PHP ${loc_php_dotver}] ${ROW}";
                     done < <("/usr/local/php${loc_php_version}/bin/php" -i | grep -i "^${EXT}");
                     IFS="${OLD_IFS}";
+                    echo "";
                 }
                 else
                 {
                     echo "${BN}[WARNING]${BF} The extension ${BN}${EXT}${BF} is probably not enabled for ${BN}PHP ${loc_php_dotver}${BF}! I did not detect it.";
                 }
                 fi;
+
+                unset IS_ENABLED;
+            }
+            else
+            {
+                echo "${BN}[Warning] The extension file ${loc_extension_file} for PHP ${loc_php_dotver} not found${BF}";
+            }
+            fi;
+        }
+        else
+        {
+            if [ -f "${loc_extension_file}" ];
+            then
+            {
+                IS_ENABLED=$("/usr/local/php${loc_php_version}/bin/php" -m | grep -m1 -i "^${EXT}$");
+
+                if [ -n "${IS_ENABLED}" ]; then
+                {
+                    echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${loc_php_dotver}${BF} seems to be enabled!";
+                    OLD_IFS="${IFS}"; IFS=$'\n';
+                    while read -r ROW
+                    do
+                        echo "[PHP ${loc_php_dotver}] ${ROW}";
+                    done < <("/usr/local/php${loc_php_version}/bin/php" -i | grep -i "^${EXT}");
+                    IFS="${OLD_IFS}";
+                    echo "";
+                }
+                else
+                {
+                    echo "${BN}[WARNING]${BF} The extension ${BN}${EXT}${BF} is probably not enabled for ${BN}PHP ${loc_php_dotver}${BF}! I did not detect it.";
+                }
+                fi;
+
+                unset IS_ENABLED;
             }
             else
             {
@@ -652,6 +674,7 @@ PVN="";
 BETA="";
 QUIET="1";
 IS_CENTOS_7=$(grep -c -m1 'VERSION="7' /etc/os-release);
+SOURCEGUARDIAN_DIR="/usr/local/sourceguardian";
 
 [ -n "${CMD}" ] || do_usage;
 
