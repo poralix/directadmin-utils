@@ -5,7 +5,7 @@
 # Written by Alex Grebenschikov (support@poralix.com)
 #
 # =====================================================
-# versions: 0.15-beta $ Mon Oct 28 12:23:07 CET 2024
+# versions: 0.15.1-beta $ Thu Oct 31 05:29:52 AST 2024
 #           0.12-beta $ Mon May  9 18:51:05 +07 2022
 #           0.11-beta $ Thu Feb 24 22:49:14 +07 2022
 #           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
@@ -63,6 +63,9 @@ find_extension_version()
         case "${PHPVER}" in
             52|53|54|55|56)
                 case "${EXT}" in
+                    apcu)
+                        EXT_VERSION_LEGACY="4.0.11";
+                    ;;
                     igbinary)
                         EXT_VERSION_LEGACY="2.0.8";
                     ;;
@@ -104,7 +107,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.15-beta $ Mon Oct 28 12:23:07 CET 2024        #
+#     Version: 0.15.1-beta $ Thu Oct 31 05:29:52 AST 2024      #
 # ============================================================ #
 
 Usage:
