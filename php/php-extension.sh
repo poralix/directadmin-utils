@@ -1,54 +1,55 @@
 #!/bin/bash
+# ======================================================
 #
-# A script to install/update/remove pecl extension
-# for all installed by CustomBuild 2.x PHP versions
-# Written by Alex Grebenschikov (support@poralix.com)
+#  A script to install/update/remove PHP extensions
+#  for all installed by CustomBuild 2.x PHP versions
+#  Written by Alex Grebenschikov (support@poralix.com)
 #
-# =====================================================
-# versions: 0.15.1-beta $ Thu Oct 31 05:29:52 AST 2024
-#           0.12-beta $ Mon May  9 18:51:05 +07 2022
-#           0.11-beta $ Thu Feb 24 22:49:14 +07 2022
-#           0.10-beta $ Mon Jan 24 17:06:22 +07 2022
-#           0.9-beta $ Sat Apr  3 11:19:27 PDT 2021
-#           0.8-beta $ Thu Mar 21 17:54:46 +07 2019
-#           0.7-beta $ Tue Dec 18 13:54:09 +07 2018
-#           0.6-beta $ Wed Dec 12 11:23:45 +07 2018
-#           0.5-beta $ Tue Jun 12 02:27:32 PDT 2018
-#           0.4-beta $ Tue May 15 14:08:57 +07 2018
-#           0.3-beta $ Wed May  2 20:36:54 +07 2018
-#           0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
-# =====================================================
+# ======================================================
+#  Version: 0.16.0-beta $ Thu Oct 31 15:59:10 CET 2024
+#  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
+# ======================================================
+#
 #set -x
 
 PWD="$(pwd)";
 WORKDIR="/usr/local/src";
-PECL=$(find /usr/local/php*/bin/pecl /usr/local/bin/pecl 2>/dev/null | head -1);
 LANG=C;
 FILE="";
 EXT="";
-PHPVER="";
 BN="$(tput -Txterm bold)"
 BF="$(tput -Txterm sgr0)"
 
+redirect_cmd()
+{
+    if [ "${QUIET}" == "1" ];
+    then
+        "$@" > /dev/null 2>&1;
+    else
+        "$@";
+    fi;
+    return "$?";
+}
+
 verify_php_version()
 {
-    if [ -n "${PVN}" ];
+    local loc_php_version loc_pecl_bin;
+    loc_php_version="${1}";
+
+    if [ -n "${loc_php_version}" ];
     then
     {
-        if [ -d "/usr/local/php${PVN}" ] && [ -f "/usr/local/php${PVN}/bin/php" ];
+        if [ ! -d "/usr/local/php${loc_php_version}/" ] || [ ! -f "/usr/local/php${loc_php_version}/bin/php" ];
         then
         {
-            PHPVER="php${PVN}";
-            PECL="/usr/local/php${PVN}/bin/pecl";
-        }
-        else
-        {
-            echo "${BN}[ERROR] PHP version php${PVN} was not found!${BF}";
+            echo "${BN}[ERROR] PHP version php${loc_php_version} was not found!${BF}";
             exit 2;
         }
         fi;
-        if [ ! -x "${PECL}" ]; then
-            echo "${BN}[ERROR] PECL for PHP version php${PVN} was not found!${BF}";
+
+        loc_pecl_bin="/usr/local/php${loc_php_version}/bin/pecl";
+        if [ ! -x "${loc_pecl_bin}" ]; then
+            echo "${BN}[ERROR] PECL for PHP version php${loc_php_version} was not found!${BF}";
             exit 2;
         fi;
     }
@@ -57,10 +58,14 @@ verify_php_version()
 
 find_extension_version()
 {
+    local loc_php_version loc_php_dotver;
+    loc_php_version="${1:?}";
+    loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+
     if [ -z "${EXT_VERSION}" ];
     then
     {
-        case "${PHPVER}" in
+        case "${loc_php_version}" in
             52|53|54|55|56)
                 case "${EXT}" in
                     apcu)
@@ -88,26 +93,80 @@ find_extension_version()
                 esac;
             ;;
             *)
-                EXT_VERSION_LEGACY="";
+                case "${EXT}" in
+                    redis)
+                        EXT_VERSION_LEGACY="";
+                        if [ "${IS_CENTOS_7}" == "1" ];
+                        then
+                        {
+                            EXT_VERSION_LEGACY="5.3.7";
+                        }
+                        fi;
+                    ;;
+                    *)
+                        EXT_VERSION_LEGACY="";
+                    ;;
+                esac;
             ;;
         esac;
     }
     fi;
-    test -n "${EXT_VERSION_LEGACY}" && echo "${BN}Using legacy version=${EXT_VERSION_LEGACY} for extension=${EXT} for PHP=${PHPVER}${BF}";
-    test -z "${EXT_VERSION_LEGACY}" && echo "${BN}Using default version for extension=${EXT} for PHP=${PHPVER}${BF}";
+    test -n "${EXT_VERSION_LEGACY}" && echo "${BN}[OK] Using legacy version=${EXT_VERSION_LEGACY} for extension=${EXT} for PHP ${loc_php_dotver}${BF}";
+    test -z "${EXT_VERSION_LEGACY}" && echo "${BN}[OK] Using default version for extension=${EXT} for PHP ${loc_php_dotver}${BF}";
+}
+
+do_install_sourceguardian()
+{
+    SOURCEGUARDIAN_DIR="/usr/local/sourceguardian";
+
+    if [ "${SOURCEGUARDIAN_INSTALLED}" == "1" ];
+    then
+        echo "${BN}[OK] Already installed sourceguardian loaders${BF}";
+        return 0;
+    fi;
+
+    echo "${BN}[OK] Going to download sourceguardian loaders${BF}";
+    mkdir -p "${SOURCEGUARDIAN_DIR}";
+    cd "${SOURCEGUARDIAN_DIR}" && curl -s https://www.sourceguardian.com/loaders/download/loaders.linux-x86_64.tar.gz --output "${SOURCEGUARDIAN_DIR}/loaders.linux-x86_64.tar.gz";
+    if [ "$?" == "0" ] && [ -f "${SOURCEGUARDIAN_DIR}/loaders.linux-x86_64.tar.gz" ];
+    then
+    {
+        echo "${BN}[OK] Unpacking sourceguardian loaders to ${SOURCEGUARDIAN_DIR}${BF}";
+        cd "${SOURCEGUARDIAN_DIR}" && tar -xzf "${SOURCEGUARDIAN_DIR}/loaders.linux-x86_64.tar.gz";
+        if [ "$?" == "0" ];
+        then
+        {
+            SOURCEGUARDIAN_INSTALLED=1;
+            rm -f "${SOURCEGUARDIAN_DIR}/loaders.linux-x86_64.tar.gz";
+        }
+        else
+        {
+            SOURCEGUARDIAN_INSTALLED=0;
+            echo "${BN}[ERROR] Failed to unpack sourceguardian loaders${BF}";
+            exit 1;
+        }
+        fi;
+    }
+    else
+    {
+        SOURCEGUARDIAN_INSTALLED=0;
+        echo "${BN}[ERROR] Failed to download sourceguardian loaders${BF}";
+        exit 1;
+    }
+    fi;
 }
 
 do_usage()
 {
     echo "
 # ============================================================ #
-#     A script to install/update/remove PECL extension         #
+#     A script to install/update/remove PHP extensions         #
 #     for all installed by CustomBuild 2.x PHP versions        #
 # ============================================================ #
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.15.1-beta $ Thu Oct 31 05:29:52 AST 2024      #
+#     Version: 0.16.0-beta $ Thu Oct 31 15:59:10 CET 2024      #
 # ============================================================ #
 
 Usage:
@@ -134,6 +193,7 @@ Supported options:
                 52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80,
                 81, 82, 83 etc
 
+    --verbose - show messages from configure/make operations
 ";
 
     exit 1;
@@ -141,15 +201,17 @@ Supported options:
 
 do_update()
 {
-    tmpdir=$(mktemp -d "${WORKDIR}/tmp.XXXXXXXXXX");
-    PHPIZE=$1;
-    if [ -x "${PHPIZE}" ];
+    local loc_php_version loc_php_bindir loc_pecl_bin loc_phpize_bin loc_php_dotver;
+    loc_php_version="${1:?}";
+    loc_php_bindir="/usr/local/php${loc_php_version}/bin";
+    loc_pecl_bin="/usr/local/php${loc_php_version}/bin/pecl";
+    loc_phpize_bin="/usr/local/php${loc_php_version}/bin/phpize";
+    loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+
+    if [ -x "${loc_phpize_bin}" ];
     then
     {
-        tmpfile=$(mktemp "${WORKDIR}/tmp.XXXXXXXXXX");
-        "${PECL}" channel-update pecl.php.net;
         EXT_FULL="${EXT}";
-
         if [ -z "${EXT_VERSION_LEGACY}" ];
         then
         {
@@ -164,47 +226,55 @@ do_update()
             EXT_FULL="${EXT}-${EXT_VERSION_LEGACY}";
         }
         fi;
-        "${PECL}" download "${EXT_FULL}" 2>&1 | tee "${tmpfile}";
+
+        tmpdir=$(mktemp -d "${WORKDIR}/tmp.XXXXXXXXXX");
+        tmpfile=$(mktemp "${WORKDIR}/tmp.XXXXXXXXXX");
+
+        echo "${BN}[OK] Updating ${loc_pecl_bin}${BF}";
+        redirect_cmd "${loc_pecl_bin}" channel-update pecl.php.net;
+        echo "${BN}[OK] Downloading ${EXT_FULL} for PHP ${loc_php_dotver}${BF}";
+        "${loc_pecl_bin}" download "${EXT_FULL}" 2>&1 | tee "${tmpfile}";
         FILE=$(grep "^File" "${tmpfile}" | grep downloaded | cut -d\  -f2);
         rm -f "${tmpfile}";
 
         if [ -f "${FILE}" ];
         then
         {
-            PHPVER=$(echo "${PHPIZE}" | cut -d/ -f4);
-            echo "${BN}Installing ${EXT} for ${PHPVER}${BF}";
-            PHPDIR=$(dirname "${PHPIZE}");
+            echo "${BN}[OK] Going to install extension ${EXT} for PHP ${loc_php_dotver}${BF}";
+
             cd "${WORKDIR}";
             rm -rfv "${tmpdir:?}"/*;
-            tar -zxvf "${FILE}" --directory="${tmpdir}";
+            tar -zxf "${FILE}" --directory="${tmpdir}";
             DIR=$(find "${tmpdir}/${EXT}"* -type d | head -1);
             if [ -d "${DIR}" ];
             then
             {
                 cd "${DIR}";
-                "${PHPIZE}";
-                ./configure "--with-php-config=${PHPDIR}/php-config";
+                echo "${BN}[OK] Configuring ${EXT_FULL} for PHP ${loc_php_dotver}${BF}";
+                redirect_cmd "${loc_phpize_bin}";
+                redirect_cmd ./configure "--with-php-config=${loc_php_bindir}/php-config";
                 RETVAL=$?;
                 if [ "${RETVAL}" == "0" ];
                 then
                 {
-                    make && make install;
+                    echo "${BN}[OK] Compiling ${EXT_FULL} for PHP ${loc_php_dotver}${BF}";
+                    redirect_cmd make && redirect_cmd make install;
                     RETVAL=$?;
                     if [ "${RETVAL}" == "0" ];
                     then
                     {
-                        echo "${BN}[OK] Installation of ${EXT} for ${PHPVER} completed!${BF}";
+                        echo "${BN}[OK] Installation of ${EXT} for PHP ${loc_php_dotver} completed!${BF}";
                     }
                     else
                     {
-                        echo "${BN}[ERROR] Installation of ${EXT} for ${PHPVER} failed${BF}";
+                        echo "${BN}[ERROR] Installation of ${EXT} for PHP ${loc_php_dotver} failed${BF}";
                     }
                     fi;
                     echo -ne '\007';
                 }
                 else
                 {
-                    echo "${BN}[ERROR] Configure of ${EXT} failed${BF}";
+                    echo "${BN}[ERROR] Configure of ${EXT} for PHP ${loc_php_dotver} failed${BF}";
                 }
                 fi;
                 cd "${WORKDIR}";
@@ -213,13 +283,13 @@ do_update()
         }
         else
         {
-            echo "${BN}[ERROR] Failed to download extension file of ${EXT} for ${PHPVER}${BF}";
+            echo "${BN}[ERROR] Failed to download extension file of ${EXT} for PHP ${loc_php_dotver}${BF}";
         }
         fi;
     }
     else
     {
-        echo "ERROR! Executable ${PHPIZE} not found!";
+        echo "ERROR! Executable ${loc_phpize_bin} not found!";
         exit 1;
     }
     fi;
@@ -228,160 +298,255 @@ do_update()
 
 do_update_ini()
 {
-    EXT_DIR=$("/usr/local/${1}/bin/php" -i 2>&1 | grep "^extension_dir" | awk '{print $3}');
-    INI_DIR="/usr/local/${1}/lib/php.conf.d";
-    [ -d "${INI_DIR}" ] || mkdir -p "${INI_DIR}";
-    INI_FILE="${INI_DIR}/99-custom.ini";
-    [ -f "${INI_FILE}" ] || INI_FILE="/usr/local/${1}/lib/php.conf.d/90-custom.ini";
+    local loc_php_version loc_php_dotver loc_extension_dir loc_php_inidir loc_php_inifile loc_inifile;
+    loc_php_version="${1:?}";
+    loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+    loc_extension_dir=$("/usr/local/php${loc_php_version}/bin/php" -i 2>&1 | grep "^extension_dir" | awk '{print $3}');
 
-    case "${EXT}" in
-        xdebug)
-            ROW="zend_extension=${EXT}.so";
-        ;;
-        *)
-            ROW="extension=${EXT}.so";
-        ;;
-    esac;
+    loc_php_inidir="/usr/local/php${1}/lib/php.conf.d";
+    test -d "${loc_php_inidir}" || mkdir -p "${loc_php_inidir}";
 
-    if [ -f "${EXT_DIR}/${EXT}.so" ];
+    loc_inifile=${2:-custom};
+    loc_php_inifile="${loc_php_inidir}/99-${loc_inifile}.ini";
+    test -f "${loc_php_inifile}" || loc_php_inifile="${loc_php_inidir}/90-${loc_inifile}.ini";
+
+    if [ "${EXT}" == "sourceguardian" ];
     then
     {
-        echo "${BN}[OK] Found ${EXT}.so. Enabling the extension in ${INI_FILE}${BF}";
-        grep -m1 -q "^${ROW}" "${INI_FILE}" >/dev/null 2>&1 || echo "${ROW}" >> "${INI_FILE}";
-        "/usr/local/${1}/bin/php" -i 2>&1 | grep -i "^${EXT}" | grep -v 'Configure Command' | head -3;
+        if [ -f "${SOURCEGUARDIAN_DIR}/ixed.${loc_php_dotver}.lin" ];
+        then
+        {
+            echo "${BN}[OK] Found ${EXT}. Enabling the extension in ${loc_php_inifile}${BF}";
+            echo "; Created by $0 script" > "${loc_php_inifile}";
+            echo "[sourceguardian]" >> "${loc_php_inifile}";
+            echo "zend_extension=${SOURCEGUARDIAN_DIR}/ixed.${loc_php_dotver}.lin" >> "${loc_php_inifile}";
+        }
+        else
+        {
+            echo "${BN}[WARNING] Could not found ${EXT}. Removing the extension from ${loc_php_inifile}${BF}";
+            rm -f "${loc_php_inifile}";
+        }
+        fi;
     }
     else
     {
-        while read -r INI_FILE
-        do
-            echo "${BN}[ERROR] Could not find ${EXT_DIR}/${EXT}.so. Removing extension from ${INI_FILE}${BF}";
-            grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}\n##" "${INI_FILE}";
-            grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}##" "${INI_FILE}";
-        done < <(find ${INI_DIR}/*.ini);
+        case "${EXT}" in
+            xdebug)
+                ROW="zend_extension=${EXT}.so";
+            ;;
+            *)
+                ROW="extension=${EXT}.so";
+            ;;
+        esac;
+
+        if [ -f "${loc_extension_dir}/${EXT}.so" ];
+        then
+        {
+            echo "${BN}[OK] Found ${EXT}.so. Enabling the extension in ${loc_php_inifile}${BF}";
+            grep -m1 -q "^${ROW}" "${loc_php_inifile}" >/dev/null 2>&1 || echo "${ROW}" >> "${loc_php_inifile}";
+            "/usr/local/php${1}/bin/php" -i 2>&1 | grep -i "^${EXT}" | grep -v 'Configure Command' | head -3;
+        }
+        else
+        {
+            while read -r INI_FILE;
+            do
+                echo "${BN}[WARNING] Could not find ${loc_extension_dir}/${EXT}.so. Removing extension from ${INI_FILE}${BF}";
+                grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}\n##" "${INI_FILE}";
+                grep -m1 -q "^${ROW}" "${INI_FILE}" && perl -pi -e "s#^${ROW}##" "${INI_FILE}";
+            done < <(find "${loc_php_inidir}/"*.ini);
+        }
+        fi;
     }
     fi;
+    unset INI_FILE;
+    unset ROW;
 }
 
 do_remove()
 {
-    verify_php_version;
+    local loc_php_versions loc_php_version loc_extension_dir loc_extension_file loc_php_dotver;
+
     if [ -n "${PVN}" ]; then
     {
-        PHP_VERSIONS="${PVN}";
+        loc_php_versions="${PVN}";
     }
     else
     {
-        PHP_VERSIONS=$(find /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8|9)[0-9]+' | xargs); #'
+        loc_php_versions=$(find /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8|9)[0-9]+' | xargs); #'
     }
     fi;
 
-    for PHP_VERSION in ${PHP_VERSIONS};
+    for loc_php_version in ${loc_php_versions};
     do
     {
-        PHPVER="php${PHP_VERSION}";
+        verify_php_version "${loc_php_version}";
+        loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+        loc_extension_dir=$("/usr/local/php${loc_php_version}/bin/php" -i 2>&1 | grep "^extension_dir" | awk '{print $3}');
+        loc_extension_file="${loc_extension_dir}/${EXT}.so";
 
-        EXT_DIR=$("/usr/local/${PHPVER}/bin/php" -i 2>&1 | grep "^extension_dir" | awk '{print $3}');
-        EXT_FILE="${EXT_DIR}/${EXT}.so";
-        if [ -f "${EXT_FILE}" ]; then
+        if [ "${EXT}" == "sourceguardian" ];
+        then
         {
-            rm -f "${EXT_FILE}";
-            echo "${BN}[OK] The extension ${EXT} for PHP ${PHP_VERSION} found! Removing it...${BF}";
+            loc_extension_file="${SOURCEGUARDIAN_DIR}/ixed.${loc_php_dotver}.lin";
+
+            if [ -f "${loc_extension_file}" ];
+            then
+            {
+                rm -f "${loc_extension_file}";
+                echo "${BN}[OK] The extension ${EXT} for PHP ${loc_php_dotver} found! Removing it...${BF}";
+            }
+            else
+            {
+                echo "${BN}[Warning] The extension ${EXT} for PHP ${loc_php_dotver} not found! Nothing to disable...${BF}";
+            }
+            fi;
         }
         else
         {
-            echo "${BN}[Warning] The extension ${EXT} for PHP ${PHP_VERSION} not found! Nothing to disable...${BF}";
+            if [ -f "${loc_extension_file}" ];
+            then
+            {
+                rm -f "${loc_extension_file}";
+                echo "${BN}[OK] The extension ${EXT} for PHP ${loc_php_dotver} found! Removing it...${BF}";
+            }
+            else
+            {
+                echo "${BN}[Warning] The extension ${EXT} for PHP ${loc_php_dotver} not found! Nothing to disable...${BF}";
+            }
+            fi;
         }
         fi;
-        do_update_ini "${PHPVER}" >/dev/null 2>&1;
-        do_restart_webserver "${PHPVER}";
-        test -f "${INI_FILE}" && cat "${INI_FILE}";
+
+        do_update_ini "${loc_php_version}" >/dev/null 2>&1;
+        do_restart_webserver "${loc_php_version}";
     }
     done;
 }
 
-do_install()
+do_install_single()
 {
-    verify_php_version;
-    cd "${WORKDIR}";
+    local loc_php_version;
+    loc_php_version=${1:?};
 
-    if [ ! -x "${PECL}" ];
+    if [ "${EXT}" == "sourceguardian" ];
     then
     {
-        echo "${BN}[ERROR] No pecl found in ${PECL}${BF}";
-        exit 1;
+        do_install_sourceguardian;
+        do_update_ini "${loc_php_version}" sourceguardian;
+    }
+    else
+    {
+        find_extension_version "${loc_php_version}";
+        do_update "${loc_php_version}";
+        do_update_ini "${loc_php_version}";
     }
     fi;
+}
 
-    if [ -z "${PHPVER}" ];
+do_install()
+{
+    local loc_php_version loc_php_dotver;
+    loc_php_version=${1};
+
+    cd "${WORKDIR}";
+
+    if [ -z "${loc_php_version}" ];
     then
     {
         while read -r PHPIZE
         do
         {
-            PHPVER=$(echo "${PHPIZE}" | grep -o "[0-9]*");
-            find_extension_version "${PHPVER}";
-            do_update "${PHPIZE}";
-            do_update_ini "${PHPVER}";
-            do_restart_webserver "${PHPVER}";
+            loc_php_version=$(echo "${PHPIZE}" | grep -o "[0-9]*");
+            loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+            verify_php_version "${loc_php_version}";
+            echo "${BN}[OK] Started with PHP ${loc_php_dotver}${BF}";
+            do_install_single "${loc_php_version}";
+            do_restart_webserver "${loc_php_version}";
+            echo "${BN}[OK] Finished with PHP ${loc_php_dotver}${BF}";
             echo; sleep 1;
         }
         done < <(find /usr/local/php*/bin/phpize);
     }
     else
     {
-        find_extension_version "${PHPVER}";
-        do_update "/usr/local/${PHPVER}/bin/phpize";
-        do_update_ini "${PHPVER}";
-        do_restart_webserver "${PHPVER}";
+        loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+        verify_php_version "${loc_php_version}";
+        echo "${BN}[OK] Started with PHP ${loc_php_dotver}${BF}";
+        do_install_single "${loc_php_version}";
+        do_restart_webserver  "${loc_php_version}";
+        echo "${BN}[OK] Finished with PHP ${loc_php_dotver}${BF}";
     }
     fi;
 
-    [ -d "${PWD}" ] && cd "${PWD}";
+    test -d "${PWD}" && cd "${PWD}";
 }
 
 do_status()
 {
-    verify_php_version;
+    local loc_php_versions loc_php_version loc_extension_dir loc_extension_file loc_php_dotver;
+
     if [ -n "${PVN}" ]; then
     {
-        PHP_VERSIONS="${PVN}";
+        loc_php_versions="${PVN}";
     }
     else
     {
-        PHP_VERSIONS=$(find /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8|9)[0-9]+' | xargs); #'
+        loc_php_versions=$(find /usr/local/php*/bin/php | sort -n | egrep -o '(5|7|8|9)[0-9]+' | xargs); #'
     }
     fi;
 
-    for PHP_VERSION in ${PHP_VERSIONS};
+    for loc_php_version in ${loc_php_versions};
     do
     {
-        PHPVER="php${PHP_VERSION}";
+        verify_php_version "${loc_php_version}";
+        loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+        loc_extension_dir=$("/usr/local/php${loc_php_version}/bin/php" -i 2>&1 | grep "^extension_dir" | awk '{print $3}');
+        loc_extension_file="${loc_extension_dir}/${EXT}.so";
 
-        EXT_DIR=$("/usr/local/${PHPVER}/bin/php" -i 2>&1 | grep "^extension_dir" | awk '{print $3}');
-        EXT_FILE="${EXT_DIR}/${EXT}.so";
-        if [ -f "${EXT_FILE}" ]; then
+        if [ "${EXT}" == "sourceguardian" ];
+        then
         {
-            #echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} found!";
-            IS_ENABLED=$("/usr/local/${PHPVER}/bin/php" -m | grep -m1 "^${EXT}$");
-            if [ -n "${IS_ENABLED}" ]; then
+            loc_extension_file="${SOURCEGUARDIAN_DIR}/ixed.${loc_php_dotver}.lin";
+
+            if [ -f "${loc_extension_file}" ];
+            then
             {
-                echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} seems to be enabled!";
-                OLD_IFS="${IFS}"; IFS=$'\n';
-                while read -r ROW
-                do
-                    echo "[${PHPVER}] ${ROW}";
-                done < <("/usr/local/${PHPVER}/bin/php" -i | grep -i "^${EXT}");
-                IFS="${OLD_IFS}";
+                echo "${BN}[OK] The extension ${EXT} for PHP ${loc_php_dotver} found! Removing it...${BF}";
             }
             else
             {
-                echo "${BN}[WARNING]${BF} The extension ${BN}${EXT}${BF} is probably not enabled for ${BN}PHP ${PHP_VERSION}${BF}! I did not detect it.";
+                echo "${BN}[Warning] The extension ${EXT} for PHP ${loc_php_dotver} not found! Nothing to disable...${BF}";
             }
             fi;
         }
         else
         {
-            echo "${BN}[Warning]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${PHP_VERSION}${BF} not found!";
+            if [ -f "${loc_extension_file}" ];
+            then
+            {
+                IS_ENABLED=$("/usr/local/php${loc_php_version}/bin/php" -m | grep -m1 "^${EXT}$");
+
+                if [ -n "${IS_ENABLED}" ]; then
+                {
+                    echo "${BN}[OK]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${loc_php_dotver}${BF} seems to be enabled!";
+                    OLD_IFS="${IFS}"; IFS=$'\n';
+                    while read -r ROW
+                    do
+                        echo "[PHP ${loc_php_dotver}] ${ROW}";
+                    done < <("/usr/local/php${loc_php_version}/bin/php" -i | grep -i "^${EXT}");
+                    IFS="${OLD_IFS}";
+                }
+                else
+                {
+                    echo "${BN}[WARNING]${BF} The extension ${BN}${EXT}${BF} is probably not enabled for ${BN}PHP ${loc_php_dotver}${BF}! I did not detect it.";
+                }
+                fi;
+            }
+            else
+            {
+                echo "${BN}[Warning]${BF} The extension ${BN}${EXT}${BF} for ${BN}PHP ${loc_php_dotver}${BF} not found!";
+            }
+            fi;
         }
         fi;
     }
@@ -390,29 +555,33 @@ do_status()
 
 do_restart_webserver()
 {
-    DOTVER=$(echo "${1}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
-    PHP_INSTANCE=$(grep "^php[1-9]_release=${DOTVER}" /usr/local/directadmin/custombuild/options.conf | cut -d_ -f1);
-    if [ -n "${PHP_INSTANCE}" ]; then
+    local loc_php_version loc_php_dotver loc_php_instance loc_php_mode_default loc_php_mode loc_webserver;
+    loc_php_version=${1:?};
+    loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+    loc_php_instance=$(grep "^php[1-9]_release=${loc_php_dotver}" /usr/local/directadmin/custombuild/options.conf | cut -d_ -f1);
+
+    if [ -n "${loc_php_instance}" ]; then
     {
-        PHP_MODE_DEFAULT=$(grep "^php1_mode=" /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
-        PHP_MODE=$(grep "^${PHP_INSTANCE}_mode=" /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
-        PHP_MODE=${PHP_MODE:-$PHP_MODE_DEFAULT};
-        if [ "${PHP_MODE}" == "php-fpm" ]; then
+        loc_php_mode_default=$(grep "^php1_mode=" /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
+        loc_php_mode=$(grep "^${loc_php_instance}_mode=" /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
+        loc_php_mode=${loc_php_mode:-$loc_php_mode_default};
+
+        if [ "${loc_php_mode}" == "php-fpm" ]; then
         {
-            echo "${BN}[INFO]${BF} Going to restart PHP-FPM ${DOTVER}!";
-            do_restart_service "php-fpm${DOTVER//./}";
+            echo "${BN}[INFO]${BF} Going to restart PHP-FPM ${loc_php_dotver}!";
+            do_restart_service "php-fpm${loc_php_version}";
         }
-        elif [ "${PHP_MODE}" == "lsphp" ]; then
+        elif [ "${loc_php_mode}" == "lsphp" ]; then
         {
-            echo "${BN}[INFO]${BF} Going to reload PHP ${DOTVER} instances (${PHP_MODE})!";
+            echo "${BN}[INFO]${BF} Going to reload PHP ${loc_php_dotver} instances (${loc_php_mode})!";
             killall lsphp;
         }
         else
         {
-            echo "${BN}[INFO]${BF} Going to restart a webserver for PHP ${DOTVER} (${PHP_MODE})!";
-            WEBSERVER=$(grep ^webserver= /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
+            echo "${BN}[INFO]${BF} Going to restart a webserver for PHP ${loc_php_dotver} (${loc_php_mode})!";
+            loc_webserver=$(grep ^webserver= /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
 
-            case "${WEBSERVER}" in
+            case "${loc_webserver}" in
                 nginx_apache|apache)
                     do_restart_service "httpd";
                 ;;
@@ -428,46 +597,48 @@ do_restart_webserver()
     }
     else
     {
-        echo "${BN}[Warning]${BF} The PHP version ${BN}${DOTVER}${BF} isn't managed by DirectAdmin!";
+        echo "${BN}[Warning]${BF} The PHP version ${BN}${loc_php_dotver}${BF} isn't managed by DirectAdmin!";
     }
     fi;
-    echo '';
 }
 
 do_restart_service()
 {
-    echo "${BN}[INFO]${BF} Restarting ${1}!";
+    local loc_service;
+    loc_service=${1:?};
+    echo "${BN}[INFO]${BF} Restarting ${loc_service}!";
 
     if [ -e "/bin/systemctl" ]; then
     {
-        /bin/systemctl restart "${1}.service";
+        /bin/systemctl restart "${loc_service}.service";
     }
     else
     {
-        /sbin/service "${1}" restart;
+        /sbin/service "${loc_service}" restart;
     }
     fi;
 }
 
 do_update_script()
 {
+    local loc_temp_file;
     echo "${BN}[INFO]${BF} Updating the script $0 from the official repository!";
     echo "${BN}[INFO]${BF} HOME: https://github.com/poralix/directadmin-utils/!";
-    TMP_FILE=$(mktemp);
-    if [ -f "${TMP_FILE}" ];
+    loc_temp_file=$(mktemp);
+    if [ -f "${loc_temp_file}" ];
     then
-        curl -Ss "https://raw.githubusercontent.com/poralix/directadmin-utils/refs/heads/master/php/php-extension.sh" --output "${TMP_FILE}";
+        curl -Ss "https://raw.githubusercontent.com/poralix/directadmin-utils/refs/heads/master/php/php-extension.sh" --output "${loc_temp_file}";
         if [ "$?" == "0" ];
         then
-            cat "${TMP_FILE}" > "${SCRIPT}";
+            cat "${loc_temp_file}" > "${SCRIPT}";
             chmod 750 "${SCRIPT}";
             echo "${BN}[INFO]${BF} Script updated OK!";
-            rm -f "${TMP_FILE}";
+            rm -f "${loc_temp_file}";
             exit 0;
         else
             echo "${BN}[ERROR]${BF} Failed to update the script!";
         fi;
-        rm -f "${TMP_FILE}";
+        rm -f "${loc_temp_file}";
     else
         echo "${BN}[ERROR]${BF} Failed to update the script!";
     fi;
@@ -479,6 +650,8 @@ CMD="${1}";
 EXT="${2}";
 PVN="";
 BETA="";
+QUIET="1";
+IS_CENTOS_7=$(grep -c -m1 'VERSION="7' /etc/os-release);
 
 [ -n "${CMD}" ] || do_usage;
 
@@ -496,6 +669,9 @@ do
             EXT_VERSION=$(echo "${ARG}" | cut -d= -f2);
             [ -z "${EXT_VERSION}" ] && do_usage;
         ;;
+        --verbose)
+            QUIET=0;
+        ;;
     esac;
 done;
 
@@ -507,7 +683,7 @@ fi;
 case "${CMD}" in
     install)
         [ -n "${EXT}" ] || do_usage;
-        do_install;
+        do_install "${PVN}";
     ;;
     remove)
         [ -n "${EXT}" ] || do_usage;
