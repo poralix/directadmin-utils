@@ -17,26 +17,29 @@ Written by: Alex Grebenschikov (support@poralix.com)
 ```
 Usage:
 
-./php-extension.sh <command> <pecl_extension> [<options>]
+    ./php-extension.sh <command> <pecl_extension> [<options>]
 
-        Supported commands:
+Supported commands:
 
-            install   - to install extension
-            remove    - to remove extension
-            status    - show status of an extension
+    install        - to install PECL extension
+    remove         - to remove PECL extension
+    status         - show a status of PECL extension for a PHP version
+    version        - show a PECL extension version installed
+    selfupdate     - update this script from GitHub
 
-        options:
+Supported options:
 
-            --ver=VER - to install a specified version of an extension
+    --ver=VER - to install a specified version of an
+                extension
 
-            --beta    - to install a beta version of an extension
+    --beta    - to install a beta version of an extension
 
-            --php=VER - to install extension for one PHP version
-                        digits only (only one version at a time):
-                        52, 53, 54, 55, 56, 70, 71, 72, 73, etc
+    --php=VER - to install extension for one PHP version
+                digits only (only one version at a time):
+                52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80,
+                81, 82, 83 etc
 
-
-
+    --verbose - show messages from configure/make operations
 
 ```
 
