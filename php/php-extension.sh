@@ -6,7 +6,7 @@
 #  Written by Alex Grebenschikov (support@poralix.com)
 #
 # ======================================================
-#  Version: 0.16.2-beta $ Thu Oct 31 13:00:55 AST 2024
+#  Version: 0.17.0-beta $ Wed May  7 11:26:23 +07 2025
 #  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # ======================================================
 #
@@ -164,7 +164,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.16.2-beta $ Thu Oct 31 13:00:55 AST 2024      #
+#     Version: 0.17.0-beta $ Wed May  7 11:26:23 +07 2025      #
 # ============================================================ #
 
 Usage:
@@ -189,7 +189,7 @@ Supported options:
     --php=VER - to install extension for one PHP version
                 digits only (only one version at a time):
                 52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80,
-                81, 82, 83 etc
+                81, 82, 83, 84 etc
 
     --verbose - show messages from configure/make operations
 ";
@@ -199,12 +199,23 @@ Supported options:
 
 do_update()
 {
-    local loc_php_version loc_php_bindir loc_pecl_bin loc_phpize_bin loc_php_dotver;
+    local loc_php_version loc_php_bindir loc_pecl_bin loc_phpize_bin loc_php_dotver loc_configure_options;
     loc_php_version="${1:?}";
     loc_php_bindir="/usr/local/php${loc_php_version}/bin";
     loc_pecl_bin="/usr/local/php${loc_php_version}/bin/pecl";
     loc_phpize_bin="/usr/local/php${loc_php_version}/bin/phpize";
     loc_php_dotver=$(echo "${loc_php_version}" | egrep -o '(5|7|8|9)[0-9]+' | sed 's/\(.\)\(.\)/\1.\2/'); #'
+    loc_configure_options='';
+
+    case "${EXT}" in
+        redis)
+            loc_configure_options="--enable-redis-lzf";
+            test -e /usr/include/zstd.h && loc_configure_options="${loc_configure_options} --enable-redis-zstd";
+        ;;
+        *)
+            loc_configure_options='';
+        ;;
+    esac;
 
     if [ -x "${loc_phpize_bin}" ];
     then
@@ -250,7 +261,7 @@ do_update()
                 cd "${DIR}";
                 echo "${BN}[OK] Configuring ${EXT_FULL} for PHP ${loc_php_dotver}${BF}";
                 redirect_cmd "${loc_phpize_bin}";
-                redirect_cmd ./configure "--with-php-config=${loc_php_bindir}/php-config";
+                redirect_cmd ./configure ${loc_configure_options} "--with-php-config=${loc_php_bindir}/php-config";
                 RETVAL=$?;
                 if [ "${RETVAL}" == "0" ];
                 then
