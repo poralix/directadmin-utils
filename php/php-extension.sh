@@ -6,7 +6,7 @@
 #  Written by Alex Grebenschikov (support@poralix.com)
 #
 # ======================================================
-#  Version: 0.17.3-beta $ Wed May  7 18:00:27 +07 2025
+#  Version: 0.17.4-beta $ Wed May  7 18:21:48 +07 2025
 #  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # ======================================================
 #
@@ -164,7 +164,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.17.3-beta $ Wed May  7 18:00:27 +07 2025      #
+#     Version: 0.17.4-beta $ Wed May  7 18:21:48 +07 2025      #
 # ============================================================ #
 
 Usage:
@@ -236,10 +236,10 @@ do_update()
         redis)
             loc_configure_options="--enable-redis-lzf";
             test -e /usr/include/zstd.h && loc_configure_options="${loc_configure_options} --enable-redis-zstd";
+            test -e "${loc_extension_dir}/igbinary.so" && loc_configure_options="${loc_configure_options} --enable-redis-igbinary";
         ;;
         igbinary)
             loc_configure_options="";
-            test -e "${loc_extension_dir}/redis.so" && loc_configure_options="${loc_configure_options} --enable-redis-igbinary";
         ;;
         *)
             loc_configure_options='';
