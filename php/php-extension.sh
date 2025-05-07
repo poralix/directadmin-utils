@@ -6,7 +6,7 @@
 #  Written by Alex Grebenschikov (support@poralix.com)
 #
 # ======================================================
-#  Version: 0.17.1-beta $ Wed May  7 14:38:00 +07 2025
+#  Version: 0.17.2-beta $ Wed May  7 14:54:38 +07 2025
 #  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # ======================================================
 #
@@ -164,7 +164,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.17.1-beta $ Wed May  7 14:38:00 +07 2025      #
+#     Version: 0.17.2-beta $ Wed May  7 14:54:38 +07 2025      #
 # ============================================================ #
 
 Usage:
@@ -206,7 +206,6 @@ do_disable_extension_in_da()
     then
         echo "${BN}[OK] Disabling ${EXT} for PHP in DirectAdmin CustomBuild${BF}";
         /usr/local/directadmin/directadmin build set php_${EXT} no;
-        perl -pi -e "s/^extension=${EXT}.so//" "${loc_php_da_ini_file}";
     else
         if grep -q "^php_${EXT}=no$" /usr/local/directadmin/custombuild/options.conf;
         then
@@ -214,6 +213,11 @@ do_disable_extension_in_da()
         else
             echo "${BN}[NOTICE] ${EXT} for PHP is not managed by DirectAdmin CustomBuild${BF}";
         fi;
+    fi;
+    if grep -q "^extension=${EXT}.so$" "${loc_php_da_ini_file}";
+    then
+        echo "${BN}[OK] Disabling ${EXT} in PHP ${loc_php_version} installed by DirectAdmin CustomBuild${BF}";
+        perl -pi -e "s/^extension=${EXT}.so//" "${loc_php_da_ini_file}";
     fi;
 }
 
