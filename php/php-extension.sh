@@ -6,7 +6,7 @@
 #  Written by Alex Grebenschikov (support@poralix.com)
 #
 # ======================================================
-#  Version: 0.17.0-beta $ Wed May  7 11:26:23 +07 2025
+#  Version: 0.17.1-beta $ Wed May  7 14:38:00 +07 2025
 #  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
 # ======================================================
 #
@@ -164,7 +164,7 @@ do_usage()
 #     IMPORTANT: DirectAdmin servers are only supported        #
 # ============================================================ #
 #     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.17.0-beta $ Wed May  7 11:26:23 +07 2025      #
+#     Version: 0.17.1-beta $ Wed May  7 14:38:00 +07 2025      #
 # ============================================================ #
 
 Usage:
@@ -195,6 +195,26 @@ Supported options:
 ";
 
     exit 1;
+}
+
+do_disable_extension_in_da()
+{
+    local loc_php_version loc_php_da_ini_file;
+    loc_php_version="${1:?}";
+    loc_php_da_ini_file="/usr/local/php${loc_php_version}/lib/php.conf.d/10-directadmin.ini";
+    if grep -q "^php_${EXT}=yes$" /usr/local/directadmin/custombuild/options.conf;
+    then
+        echo "${BN}[OK] Disabling ${EXT} for PHP in DirectAdmin CustomBuild${BF}";
+        /usr/local/directadmin/directadmin build set php_${EXT} no;
+        perl -pi -e "s/^extension=${EXT}.so//" "${loc_php_da_ini_file}";
+    else
+        if grep -q "^php_${EXT}=no$" /usr/local/directadmin/custombuild/options.conf;
+        then
+            echo "${BN}[NOTICE] ${EXT} for PHP is already disabled in DirectAdmin CustomBuild${BF}";
+        else
+            echo "${BN}[NOTICE] ${EXT} for PHP is not managed by DirectAdmin CustomBuild${BF}";
+        fi;
+    fi;
 }
 
 do_update()
@@ -273,6 +293,7 @@ do_update()
                     then
                     {
                         echo "${BN}[OK] Installation of ${EXT} for PHP ${loc_php_dotver} completed!${BF}";
+                        do_disable_extension_in_da "${loc_php_version}";
                     }
                     else
                     {
