@@ -1,14 +1,14 @@
 #!/bin/bash
-# ======================================================
+# =========================================================
 #
 #  A script to install/update/remove PHP extensions
 #  for all installed by CustomBuild 2.x PHP versions
 #  Written by Alex Grebenschikov (support@poralix.com)
 #
-# ======================================================
-#  Version: 0.17.4-beta $ Wed May  7 18:21:48 +07 2025
+# =========================================================
+#  Version: 0.17.5-beta $ Mon Sep 22 01:13:44 PM CEST 2025
 #  Created:    0.2-beta $ Tue Mar 17 12:40:51 NOVT 2015
-# ======================================================
+# =========================================================
 #
 #set -x
 
@@ -157,15 +157,15 @@ do_install_sourceguardian()
 do_usage()
 {
     echo "
-# ============================================================ #
-#     A script to install/update/remove PHP extensions         #
-#     for all installed by CustomBuild 2.x PHP versions        #
-# ============================================================ #
-#     IMPORTANT: DirectAdmin servers are only supported        #
-# ============================================================ #
-#     Written by Alex Grebenschikov(support@poralix.com)       #
-#     Version: 0.17.4-beta $ Wed May  7 18:21:48 +07 2025      #
-# ============================================================ #
+# ============================================================== #
+#     A script to install/update/remove PHP extensions           #
+#     for all installed by CustomBuild 2.x PHP versions          #
+# ============================================================== #
+#     IMPORTANT: DirectAdmin servers are only supported          #
+# ============================================================== #
+#     Written by Alex Grebenschikov(support@poralix.com)         #
+#     Version: 0.17.5-beta $ Mon Sep 22 01:13:44 PM CEST 2025    #
+# ============================================================== #
 
 Usage:
 
@@ -189,7 +189,7 @@ Supported options:
     --php=VER - to install extension for one PHP version
                 digits only (only one version at a time):
                 52, 53, 54, 55, 56, 70, 71, 72, 73, 74, 80,
-                81, 82, 83, 84 etc
+                81, 82, 83, 84, 85 etc
 
     --verbose - show messages from configure/make operations
 ";
@@ -235,11 +235,14 @@ do_update()
     case "${EXT}" in
         redis)
             loc_configure_options="--enable-redis-lzf";
-            test -e /usr/include/zstd.h && loc_configure_options="${loc_configure_options} --enable-redis-zstd";
+            test -e "/usr/include/zstd.h" && loc_configure_options="${loc_configure_options} --enable-redis-zstd";
             test -e "${loc_extension_dir}/igbinary.so" && loc_configure_options="${loc_configure_options} --enable-redis-igbinary";
         ;;
         igbinary)
             loc_configure_options="";
+        ;;
+        imagick)
+            test -e "/opt/bin/magick" && loc_configure_options='--with-imagick=/opt';
         ;;
         *)
             loc_configure_options='';
